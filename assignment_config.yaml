@@ -1,0 +1,11 @@
+folder: module3
+
+build:
+  - []                # ./build.sh (no arguments)
+
+run:
+  - [512, 256]        # base configuration
+  - [2048, 256]       # additional thread count #1
+  - [1048576, 256]    # additional thread count #2
+  - [512, 64]         # additional block size #1 (>=64 threads in one block)
+  - [512, 128]        # additional block size #2

@@ -1,0 +1,12 @@
+# Treat lecture slides and other binary docs as binary: no line-ending
+# conversion, no textual diffs in `git diff` / PRs.
+*.pdf   binary -diff
+*.pptx  binary -diff
+*.key   binary -diff
+
+# Existing binary assets in the repo
+*.bmp   binary -diff
+*.pgm   binary -diff
+*.ppm   binary -diff
+*.png   binary -diff
+*.jpg   binary -diff
