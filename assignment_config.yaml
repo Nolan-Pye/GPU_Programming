@@ -1,11 +1,11 @@
-folder: module3
+folder: module5/memory_assignment
 
 build:
   - []                # ./build.sh (no arguments)
 
 run:
-  - [512, 256]        # base configuration
-  - [2048, 256]       # additional thread count #1
+  - [65536, 256]      # base configuration (counts letters in war_and_peace.txt)
+  - [4096, 256]       # additional thread count #1
   - [1048576, 256]    # additional thread count #2
-  - [512, 64]         # additional block size #1 (>=64 threads in one block)
-  - [512, 128]        # additional block size #2
+  - [65536, 64]       # additional block size #1 (>=64 threads in one block)
+  - [65536, 1024]     # additional block size #2

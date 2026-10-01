@@ -1,0 +1,180 @@
+===== ./memory_assignment 65536 256 =====
+Device: NVIDIA GeForce GTX 1650 Ti (sm_75)
+Text: war_and_peace.txt (3339794 bytes)
+Threads: 65536   Block size: 256   Blocks: 256   Bytes/thread: ~51
+
+Host->device copy of the text:
+  pageable host memory:    0.6341 ms  (  5.27 GB/s)
+  pinned host memory:      0.5349 ms  (  6.24 GB/s)
+
+Histogram timings (avg of 20 runs, identical counting code):
+  variant        memory used                            ms  vs glob  check
+  cpu            text/table/hist: host              8.3056    0.13x  reference
+  host (mapped)  text: pinned host, rest global     1.1008    0.96x  PASS
+  global         text/table/hist: global            1.0616    1.00x  PASS
+  constant       table: constant                    1.0625    1.00x  PASS
+  shared         hist: shared per block             0.1044   10.17x  PASS
+  register       text: 16B loads into registers     1.0942    0.97x  PASS
+  combined       regs + constant + shared           0.1828    5.81x  PASS
+
+Letter frequencies (2506248 letters):
+  a   201698  8.05% ############          n   183151  7.31% ###########         
+  b    34385  1.37% ##                    o   188740  7.53% ############        
+  c    61022  2.43% ###                   p    45084  1.80% ##                  
+  d   117760  4.70% #######               q     2320  0.09%                     
+  e   311754 12.44% ####################  r   147261  5.88% #########           
+  f    54519  2.18% ###                   s   162143  6.47% ##########          
+  g    50912  2.03% ###                   t   224894  8.97% ##############      
+  h   166899  6.66% ##########            u    63887  2.55% ####                
+  i   171147  6.83% ##########            v    26971  1.08% #                   
+  j     2485  0.10%                       w    58939  2.35% ###                 
+  k    20298  0.81% #                     x     4356  0.17%                     
+  l    96045  3.83% ######                y    45906  1.83% ##                  
+  m    61286  2.45% ###                   z     2386  0.10%                     
+
+All GPU variants match the CPU counts exactly.
+
+===== ./memory_assignment 4096 256 =====
+Device: NVIDIA GeForce GTX 1650 Ti (sm_75)
+Text: war_and_peace.txt (3339794 bytes)
+Threads: 4096   Block size: 256   Blocks: 16   Bytes/thread: ~816
+
+Host->device copy of the text:
+  pageable host memory:    0.6072 ms  (  5.50 GB/s)
+  pinned host memory:      0.5405 ms  (  6.18 GB/s)
+
+Histogram timings (avg of 20 runs, identical counting code):
+  variant        memory used                            ms  vs glob  check
+  cpu            text/table/hist: host              8.2394    0.09x  reference
+  host (mapped)  text: pinned host, rest global     0.8032    0.91x  PASS
+  global         text/table/hist: global            0.7315    1.00x  PASS
+  constant       table: constant                    0.7323    1.00x  PASS
+  shared         hist: shared per block             0.2807    2.61x  PASS
+  register       text: 16B loads into registers     0.7509    0.97x  PASS
+  combined       regs + constant + shared           0.1277    5.73x  PASS
+
+Letter frequencies (2506248 letters):
+  a   201698  8.05% ############          n   183151  7.31% ###########         
+  b    34385  1.37% ##                    o   188740  7.53% ############        
+  c    61022  2.43% ###                   p    45084  1.80% ##                  
+  d   117760  4.70% #######               q     2320  0.09%                     
+  e   311754 12.44% ####################  r   147261  5.88% #########           
+  f    54519  2.18% ###                   s   162143  6.47% ##########          
+  g    50912  2.03% ###                   t   224894  8.97% ##############      
+  h   166899  6.66% ##########            u    63887  2.55% ####                
+  i   171147  6.83% ##########            v    26971  1.08% #                   
+  j     2485  0.10%                       w    58939  2.35% ###                 
+  k    20298  0.81% #                     x     4356  0.17%                     
+  l    96045  3.83% ######                y    45906  1.83% ##                  
+  m    61286  2.45% ###                   z     2386  0.10%                     
+
+All GPU variants match the CPU counts exactly.
+
+===== ./memory_assignment 1048576 256 =====
+Device: NVIDIA GeForce GTX 1650 Ti (sm_75)
+Text: war_and_peace.txt (3339794 bytes)
+Threads: 1048576   Block size: 256   Blocks: 4096   Bytes/thread: ~4
+
+Host->device copy of the text:
+  pageable host memory:    0.6345 ms  (  5.26 GB/s)
+  pinned host memory:      0.5334 ms  (  6.26 GB/s)
+
+Histogram timings (avg of 20 runs, identical counting code):
+  variant        memory used                            ms  vs glob  check
+  cpu            text/table/hist: host              8.5056    0.09x  reference
+  host (mapped)  text: pinned host, rest global     0.7725    0.95x  PASS
+  global         text/table/hist: global            0.7316    1.00x  PASS
+  constant       table: constant                    0.7334    1.00x  PASS
+  shared         hist: shared per block             0.0953    7.67x  PASS
+  register       text: 16B loads into registers     0.7586    0.96x  PASS
+  combined       regs + constant + shared           0.1425    5.13x  PASS
+
+Letter frequencies (2506248 letters):
+  a   201698  8.05% ############          n   183151  7.31% ###########         
+  b    34385  1.37% ##                    o   188740  7.53% ############        
+  c    61022  2.43% ###                   p    45084  1.80% ##                  
+  d   117760  4.70% #######               q     2320  0.09%                     
+  e   311754 12.44% ####################  r   147261  5.88% #########           
+  f    54519  2.18% ###                   s   162143  6.47% ##########          
+  g    50912  2.03% ###                   t   224894  8.97% ##############      
+  h   166899  6.66% ##########            u    63887  2.55% ####                
+  i   171147  6.83% ##########            v    26971  1.08% #                   
+  j     2485  0.10%                       w    58939  2.35% ###                 
+  k    20298  0.81% #                     x     4356  0.17%                     
+  l    96045  3.83% ######                y    45906  1.83% ##                  
+  m    61286  2.45% ###                   z     2386  0.10%                     
+
+All GPU variants match the CPU counts exactly.
+
+===== ./memory_assignment 65536 64 =====
+Device: NVIDIA GeForce GTX 1650 Ti (sm_75)
+Text: war_and_peace.txt (3339794 bytes)
+Threads: 65536   Block size: 64   Blocks: 1024   Bytes/thread: ~51
+
+Host->device copy of the text:
+  pageable host memory:    0.6356 ms  (  5.25 GB/s)
+  pinned host memory:      0.5350 ms  (  6.24 GB/s)
+
+Histogram timings (avg of 20 runs, identical counting code):
+  variant        memory used                            ms  vs glob  check
+  cpu            text/table/hist: host              8.4779    0.09x  reference
+  host (mapped)  text: pinned host, rest global     0.7475    0.98x  PASS
+  global         text/table/hist: global            0.7296    1.00x  PASS
+  constant       table: constant                    0.7318    1.00x  PASS
+  shared         hist: shared per block             0.0860    8.48x  PASS
+  register       text: 16B loads into registers     0.7511    0.97x  PASS
+  combined       regs + constant + shared           0.1246    5.86x  PASS
+
+Letter frequencies (2506248 letters):
+  a   201698  8.05% ############          n   183151  7.31% ###########         
+  b    34385  1.37% ##                    o   188740  7.53% ############        
+  c    61022  2.43% ###                   p    45084  1.80% ##                  
+  d   117760  4.70% #######               q     2320  0.09%                     
+  e   311754 12.44% ####################  r   147261  5.88% #########           
+  f    54519  2.18% ###                   s   162143  6.47% ##########          
+  g    50912  2.03% ###                   t   224894  8.97% ##############      
+  h   166899  6.66% ##########            u    63887  2.55% ####                
+  i   171147  6.83% ##########            v    26971  1.08% #                   
+  j     2485  0.10%                       w    58939  2.35% ###                 
+  k    20298  0.81% #                     x     4356  0.17%                     
+  l    96045  3.83% ######                y    45906  1.83% ##                  
+  m    61286  2.45% ###                   z     2386  0.10%                     
+
+All GPU variants match the CPU counts exactly.
+
+===== ./memory_assignment 65536 1024 =====
+Device: NVIDIA GeForce GTX 1650 Ti (sm_75)
+Text: war_and_peace.txt (3339794 bytes)
+Threads: 65536   Block size: 1024   Blocks: 64   Bytes/thread: ~51
+
+Host->device copy of the text:
+  pageable host memory:    0.7007 ms  (  4.77 GB/s)
+  pinned host memory:      0.5646 ms  (  5.92 GB/s)
+
+Histogram timings (avg of 20 runs, identical counting code):
+  variant        memory used                            ms  vs glob  check
+  cpu            text/table/hist: host              8.4942    0.09x  reference
+  host (mapped)  text: pinned host, rest global     0.7770    0.94x  PASS
+  global         text/table/hist: global            0.7308    1.00x  PASS
+  constant       table: constant                    0.7351    0.99x  PASS
+  shared         hist: shared per block             0.0868    8.42x  PASS
+  register       text: 16B loads into registers     0.7524    0.97x  PASS
+  combined       regs + constant + shared           0.1342    5.45x  PASS
+
+Letter frequencies (2506248 letters):
+  a   201698  8.05% ############          n   183151  7.31% ###########         
+  b    34385  1.37% ##                    o   188740  7.53% ############        
+  c    61022  2.43% ###                   p    45084  1.80% ##                  
+  d   117760  4.70% #######               q     2320  0.09%                     
+  e   311754 12.44% ####################  r   147261  5.88% #########           
+  f    54519  2.18% ###                   s   162143  6.47% ##########          
+  g    50912  2.03% ###                   t   224894  8.97% ##############      
+  h   166899  6.66% ##########            u    63887  2.55% ####                
+  i   171147  6.83% ##########            v    26971  1.08% #                   
+  j     2485  0.10%                       w    58939  2.35% ###                 
+  k    20298  0.81% #                     x     4356  0.17%                     
+  l    96045  3.83% ######                y    45906  1.83% ##                  
+  m    61286  2.45% ###                   z     2386  0.10%                     
+
+All GPU variants match the CPU counts exactly.
+

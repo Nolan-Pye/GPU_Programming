@@ -4,9 +4,35 @@
 typedef unsigned short int u16;
 typedef unsigned int u32;
 
+// Tunable parameters - override at compile time, e.g.
+//   nvcc -DNUM_ELEMENTS=4096 -DMAX_NUM_LISTS=32 -DMERGE_VARIANT=5 -DINPUT_MODE=2
+// NUM_ELEMENTS : total values to sort; must be a multiple of MAX_NUM_LISTS.
+//                The kernel uses 3 * NUM_ELEMENTS * 4 bytes of static shared
+//                memory, so NUM_ELEMENTS <= 4096 (48 KB limit).
+// MAX_NUM_LISTS: number of interleaved lists == threads per block (<= 1024).
+//                Must be a power of two for merge variants 5 and 9.
+// MERGE_VARIANT: 1 = single thread, 5 = parallel reduction,
+//                6 = atomicMin, 9 = two-level atomicMin
+// INPUT_MODE   : 0 = ascending (original), 1 = descending, 2 = random
+#ifndef NUM_ELEMENTS
 #define NUM_ELEMENTS 2048
+#endif
 
+#ifndef MAX_NUM_LISTS
 #define MAX_NUM_LISTS 16
+#endif
+
+#ifndef MERGE_VARIANT
+#define MERGE_VARIANT 1
+#endif
+
+#ifndef INPUT_MODE
+#define INPUT_MODE 0
+#endif
+
+#if (NUM_ELEMENTS % MAX_NUM_LISTS) != 0
+#error "NUM_ELEMENTS must be a multiple of MAX_NUM_LISTS"
+#endif
 
 __host__ void cpu_sort(u32 * const data, const u32 num_elements)
 {
@@ -117,7 +143,10 @@ __device__ void radix_sort2(u32 * const sort_tmp,
 			}
 			else
 			{
-				sort_tmp_0[base_cnt_0+tid] = elem;
+				// Fixed: write the zero list in place (base_cnt_0 <= i, so this
+				// never overwrites an unread element). The original wrote to
+				// sort_tmp_0, which radix_sort2 never copies back.
+				sort_tmp[base_cnt_0+tid] = elem;
 				base_cnt_0+=num_lists;
 			}
 		}
@@ -190,7 +219,8 @@ __device__ void copy_data_to_shared(const u32 * const data,
 									const u32 tid)
 {
 	// Copy data into temp store
-	for(u32 i = 0; i<num_elements; i++)
+	// Fixed: stride by num_lists so each thread copies only its own list
+	for(u32 i = 0; i<num_elements; i+=num_lists)
 	{
 		sort_tmp[i+tid] = data[i+tid];
 	}
@@ -242,24 +272,6 @@ __device__ void merge_array1(const u32 * const src_array,
 			dest_array[i] = min_val;
 		}
 	}
-}
-
-__global__ void gpu_sort_array_array(u32 * const data,
-					const u32 num_lists,
-					const u32 num_elements)
-{
-	const u32 tid = (blockIdx.x * blockDim.x) + threadIdx.x;
-
-	__shared__ u32 sort_tmp[NUM_ELEMENTS];
-	__shared__ u32 sort_tmp_0[NUM_ELEMENTS];
-	__shared__ u32 sort_tmp_1[NUM_ELEMENTS];
-
-	copy_data_to_shared(data, sort_tmp, num_lists,
-				num_elements, tid);
-
-	radix_sort2(sort_tmp, num_lists, num_elements, tid, sort_tmp_0, sort_tmp_1);
-
-	merge_array1(sort_tmp, data, num_lists, num_elements, tid);
 }
 
 // Uses multiple threads for merge
@@ -423,7 +435,8 @@ __device__ void merge_array5(const u32 * const src_array,
 
 #define REDUCTION_SIZE 8
 #define REDUCTION_SIZE_BIT_SHIFT 3
-#define MAX_ACTIVE_REDUCTIONS ((MAX_NUM_LISTS) / REDUCTION_SIZE)
+// At least 1 so fewer than REDUCTION_SIZE lists still compiles
+#define MAX_ACTIVE_REDUCTIONS (((MAX_NUM_LISTS) / REDUCTION_SIZE) > 0 ? ((MAX_NUM_LISTS) / REDUCTION_SIZE) : 1)
 
 __device__ void merge_array9(const u32 * const src_array,
 								u32 * const dest_array,
@@ -494,36 +507,118 @@ __device__ void merge_array9(const u32 * const src_array,
 	}
 }
 
+__global__ void gpu_sort_array_array(u32 * const data,
+					const u32 num_lists,
+					const u32 num_elements)
+{
+	const u32 tid = (blockIdx.x * blockDim.x) + threadIdx.x;
+
+	__shared__ u32 sort_tmp[NUM_ELEMENTS];
+	__shared__ u32 sort_tmp_0[NUM_ELEMENTS];
+	__shared__ u32 sort_tmp_1[NUM_ELEMENTS];
+
+	copy_data_to_shared(data, sort_tmp, num_lists,
+				num_elements, tid);
+
+	radix_sort2(sort_tmp, num_lists, num_elements, tid, sort_tmp_0, sort_tmp_1);
+
+#if MERGE_VARIANT == 5
+	merge_array5(sort_tmp, data, num_lists, num_elements, tid);
+#elif MERGE_VARIANT == 6
+	merge_array6(sort_tmp, data, num_lists, num_elements, tid);
+#elif MERGE_VARIANT == 9
+	merge_array9(sort_tmp, data, num_lists, num_elements, tid);
+#else
+	merge_array1(sort_tmp, data, num_lists, num_elements, tid);
+#endif
+}
+
 void execute_host_functions()
 {
 
 }
 
+static const char *merge_name(void)
+{
+	switch(MERGE_VARIANT)
+	{
+		case 5: return "merge_array5 (parallel reduction)";
+		case 6: return "merge_array6 (atomicMin)";
+		case 9: return "merge_array9 (two-level atomicMin)";
+		default: return "merge_array1 (single thread)";
+	}
+}
+
 void execute_gpu_functions()
 {
 	u32 *d = NULL;
-	unsigned int idata[NUM_ELEMENTS], odata[NUM_ELEMENTS];
-	int i;
-	for (i = 0; i < NUM_ELEMENTS; i++){
-		idata[i] = (unsigned int) i;
-	}
+	static u32 idata[NUM_ELEMENTS], odata[NUM_ELEMENTS], expected[NUM_ELEMENTS];
+	u32 i;
 
-	cudaMalloc((void** ) &d, sizeof(int) * NUM_ELEMENTS);
+	srand(617);
+	for (i = 0; i < NUM_ELEMENTS; i++){
+#if INPUT_MODE == 1
+		idata[i] = (u32) (NUM_ELEMENTS - 1 - i);
+#elif INPUT_MODE == 2
+		idata[i] = (u32) (rand() % (NUM_ELEMENTS * 4));
+#else
+		idata[i] = (u32) i;
+#endif
+		expected[i] = idata[i];
+	}
+	cpu_sort(expected, NUM_ELEMENTS);
+
+	printf("NUM_ELEMENTS=%u MAX_NUM_LISTS(threads)=%u INPUT_MODE=%d merge=%s\n",
+		(u32)NUM_ELEMENTS, (u32)MAX_NUM_LISTS, INPUT_MODE, merge_name());
+	printf("Static shared memory for sort buffers: %u bytes\n",
+		(u32)(3 * NUM_ELEMENTS * sizeof(u32)));
+
+	cudaMalloc((void** ) &d, sizeof(u32) * NUM_ELEMENTS);
 	
-	cudaMemcpy(d, idata, sizeof(unsigned int) * NUM_ELEMENTS, cudaMemcpyHostToDevice);
+	cudaMemcpy(d, idata, sizeof(u32) * NUM_ELEMENTS, cudaMemcpyHostToDevice);
+
+	cudaEvent_t start, stop;
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
 
 	//Call GPU kernels
-	gpu_sort_array_array<<<1, NUM_ELEMENTS>>>(d,MAX_NUM_LISTS,NUM_ELEMENTS);
+	// Fixed: one thread per list. The original launched NUM_ELEMENTS (2048)
+	// threads, which exceeds the 1024 threads/block limit, so the launch
+	// failed silently and the (already sorted) input was copied back unchanged.
+	cudaEventRecord(start);
+	gpu_sort_array_array<<<1, MAX_NUM_LISTS>>>(d,MAX_NUM_LISTS,NUM_ELEMENTS);
+	cudaEventRecord(stop);
 
-	cudaDeviceSynchronize();	// Wait for the GPU launched work to complete
-	cudaGetLastError();
-	
-	cudaMemcpy(odata, d, sizeof(int) * NUM_ELEMENTS, cudaMemcpyDeviceToHost);
-
-	for (i = 0; i < NUM_ELEMENTS; i++) {
-		printf("Input value: %u, device output: %u\n", idata[i], odata[i]);
+	cudaError_t err = cudaGetLastError();
+	if (err == cudaSuccess) err = cudaDeviceSynchronize();	// Wait for the GPU launched work to complete
+	if (err != cudaSuccess) {
+		printf("CUDA error: %s\n", cudaGetErrorString(err));
+		cudaFree(d);
+		cudaDeviceReset();
+		exit(EXIT_FAILURE);
 	}
+	float ms = 0.0f;
+	cudaEventElapsedTime(&ms, start, stop);
 	
+	cudaMemcpy(odata, d, sizeof(u32) * NUM_ELEMENTS, cudaMemcpyDeviceToHost);
+
+	u32 mismatches = 0;
+	for (i = 0; i < NUM_ELEMENTS; i++) {
+#ifdef VERBOSE
+		printf("Input value: %u, device output: %u\n", idata[i], odata[i]);
+#else
+		if (i < 8 || i >= NUM_ELEMENTS - 4)
+			printf("  [%4u] input %6u -> device %6u (cpu %6u)\n", i, idata[i], odata[i], expected[i]);
+		else if (i == 8)
+			printf("  ...\n");
+#endif
+		if (odata[i] != expected[i]) mismatches++;
+	}
+	printf("Kernel time: %.3f ms   Mismatches vs CPU radix sort: %u -> %s\n",
+		ms, mismatches, mismatches == 0 ? "PASS" : "FAIL");
+	
+	cudaEventDestroy(start);
+	cudaEventDestroy(stop);
 	cudaFree((void* ) d);
 	cudaDeviceReset();
 

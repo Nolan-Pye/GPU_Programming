@@ -11,12 +11,24 @@
 #include <stdlib.h>
 #include "assert.h"
 
-static const int WORK_SIZE = 256;
+// Override at compile time, e.g. nvcc -DKERNEL_LOOP=1024 -DWORK_SIZE=4096
+#ifndef WORK_SIZE
+#define WORK_SIZE 256
+#endif
 
 typedef unsigned short int u16;
 typedef unsigned int u32;
 
+// Also the size of the __constant__ array: 4096 * 4 bytes = 16KB.
+// Constant memory is limited to 64KB, so KERNEL_LOOP must be <= 16384.
+#ifndef KERNEL_LOOP
 #define KERNEL_LOOP 4096
+#endif
+
+// Number of elements used by the timing comparison in gpu_kernel()
+#ifndef NUM_ELEMENTS
+#define NUM_ELEMENTS (128*1024)
+#endif
 
 __constant__ u32 const_data_gpu[KERNEL_LOOP];
 __device__ static u32 gmem_data_gpu[KERNEL_LOOP];
@@ -90,7 +102,7 @@ __host__ void generate_rand_data(u32 * host_data_ptr)
 
 __host__ void gpu_kernel(void)
 {
-	const u32 num_elements = (128*1024);
+	const u32 num_elements = NUM_ELEMENTS;
 	const u32 num_threads = 256;
 	const u32 num_blocks = (num_elements + (num_threads-1))/num_threads;
 	const u32 num_bytes = num_elements * sizeof(u32);
@@ -123,7 +135,10 @@ __host__ void gpu_kernel(void)
 		{
 			generate_rand_data(const_data_host);
 
+			// Load the same random data into both constant and global memory
+			// before either kernel runs (originally gmem was filled one test late)
 			cudaMemcpyToSymbol(const_data_gpu, const_data_host, KERNEL_LOOP * sizeof(u32));
+			cudaMemcpyToSymbol(gmem_data_gpu, const_data_host, KERNEL_LOOP * sizeof(u32));
 
 			const_test_gpu_gmem <<<num_blocks, num_threads>>>(data_gpu, num_elements);
 			cuda_error_check("Error ", " returned from literal runtime  kernel!");
@@ -138,7 +153,6 @@ __host__ void gpu_kernel(void)
 			cudaEventSynchronize(kernel_stop1);
 			cudaEventElapsedTime(&delta_time1, kernel_start1, kernel_stop1);
 
-			cudaMemcpyToSymbol(gmem_data_gpu, const_data_host, KERNEL_LOOP * sizeof(u32));
 			const_test_gpu_const<<< num_blocks, num_threads >>>(data_gpu, num_elements);
 
 			cuda_error_check("Error ", " returned from literal startup  kernel!");
@@ -173,7 +187,7 @@ __host__ void gpu_kernel(void)
 		cudaDeviceReset();
 		printf("\n");
 	}
-	wait_exit();
+//	wait_exit();	// blocks on getchar(); disabled so the script can run unattended
 }
 
 __host__ __device__ unsigned int bitreverse(unsigned int number) {
@@ -200,26 +214,64 @@ void execute_gpu_functions()
 {
 	u32 *d = NULL;
 	int i;
-	unsigned int idata[WORK_SIZE], odata[WORK_SIZE];
+	const u32 num_threads = 256;
+	// <<<1, WORK_SIZE>>> fails above 1024 threads, so use multiple blocks
+	const u32 num_blocks = (WORK_SIZE + num_threads - 1) / num_threads;
+	unsigned int *idata = (unsigned int *) malloc(sizeof(unsigned int) * WORK_SIZE);
+	unsigned int *odata = (unsigned int *) malloc(sizeof(unsigned int) * WORK_SIZE);
 
 	for (i = 0; i < WORK_SIZE; i++){
 		idata[i] = (unsigned int) i;
 	}
 
+	// The __constant__ array is zero until it is loaded from the host.
+	// Originally it was never loaded here, so every output was 0.
+	srand(1);
+	generate_rand_data(const_data_host);
+	cudaMemcpyToSymbol(const_data_gpu, const_data_host, KERNEL_LOOP * sizeof(u32));
+	cudaMemcpyToSymbol(gmem_data_gpu, const_data_host, KERNEL_LOOP * sizeof(u32));
+
+	// Host reference: the same loop the kernels run, using the same data
+	u32 expected = const_data_host[0];
+	for (i = 0; i < KERNEL_LOOP; i++) {
+		expected ^= const_data_host[0];
+		expected |= const_data_host[1];
+		expected &= const_data_host[2];
+		expected |= const_data_host[3];
+	}
+
+	printf("WORK_SIZE = %d, KERNEL_LOOP = %d (constant array = %u bytes), blocks = %u, threads = %u\n",
+			WORK_SIZE, KERNEL_LOOP, (unsigned int) sizeof(const_data_gpu), num_blocks, num_threads);
+	printf("const_data[0..3] = 0x%08X 0x%08X 0x%08X 0x%08X\n",
+			const_data_host[0], const_data_host[1], const_data_host[2], const_data_host[3]);
+
 	cudaMalloc((void**) &d, sizeof(int) * WORK_SIZE);
-	cudaMemcpy(d, idata, sizeof(int) * WORK_SIZE, cudaMemcpyHostToDevice);
 
-	const_test_gpu_const<<<1, WORK_SIZE>>>(d,WORK_SIZE);
+	const char *names[2] = { "constant", "gmem" };
+	for (int k = 0; k < 2; k++) {
+		cudaMemcpy(d, idata, sizeof(int) * WORK_SIZE, cudaMemcpyHostToDevice);
+		if (k == 0) const_test_gpu_const<<<num_blocks, num_threads>>>(d, WORK_SIZE);
+		if (k == 1) const_test_gpu_gmem<<<num_blocks, num_threads>>>(d, WORK_SIZE);
 
-	cudaDeviceSynchronize();	// Wait for the GPU launched work to complete
-	cudaGetLastError();
-	cudaMemcpy(odata, d, sizeof(int) * WORK_SIZE, cudaMemcpyDeviceToHost);
+		cudaDeviceSynchronize();	// Wait for the GPU launched work to complete
+		cuda_error_check("Error ", " returned from kernel!");
+		cudaMemcpy(odata, d, sizeof(int) * WORK_SIZE, cudaMemcpyDeviceToHost);
 
-	for (i = 0; i < WORK_SIZE; i++){
-		printf("Input value: %u, device output: %u, host output: %u\n",idata[i], odata[i], bitreverse(idata[i]));
-	}	
+		int mismatches = 0;
+		for (i = 0; i < WORK_SIZE; i++){
+			if (odata[i] != expected) mismatches++;
+		}
+		// Print only the first few values; printing every element is slow
+		for (i = 0; i < 4 && i < WORK_SIZE; i++){
+			printf("[%s] Input value: %u, device output: 0x%08X, host output: 0x%08X\n",
+					names[k], idata[i], odata[i], expected);
+		}
+		printf("[%s] %d/%d outputs match host\n\n", names[k], WORK_SIZE - mismatches, WORK_SIZE);
+	}
 
 	cudaFree((void*) d);
+	free(idata);
+	free(odata);
 	cudaDeviceReset();
 
 
@@ -231,6 +283,7 @@ void execute_gpu_functions()
 int main(void) {
 	execute_host_functions();
 	execute_gpu_functions();
+	gpu_kernel();	// constant vs. global memory timing (was never called)
 
 	return 0;
 }

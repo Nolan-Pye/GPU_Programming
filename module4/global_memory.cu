@@ -13,7 +13,10 @@
 
 static const int WORK_SIZE = 256;
 
+// Override at compile time, e.g. nvcc -DNUM_ELEMENTS=4096 (use a multiple of 256)
+#ifndef NUM_ELEMENTS
 #define NUM_ELEMENTS (1u<<20)
+#endif
 
 typedef struct {
 	unsigned int a;
@@ -556,6 +559,7 @@ void execute_gpu_functions()
  * Host function that prepares data array and passes it to the CUDA kernel.
  */
 int main(void) {
+	printf("NUM_ELEMENTS = %u\n", (unsigned int)NUM_ELEMENTS);
 	execute_host_functions();
 	execute_gpu_functions();
 	return 0;
