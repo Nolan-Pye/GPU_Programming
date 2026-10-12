@@ -1,11 +1,13 @@
-folder: module5/memory_assignment
+folder: module6/streams_assignment
 
 build:
   - []                # ./build.sh (no arguments)
 
 run:
-  - [65536, 256]      # base configuration (counts letters in war_and_peace.txt)
-  - [4096, 256]       # additional thread count #1
-  - [1048576, 256]    # additional thread count #2
-  - [65536, 64]       # additional block size #1 (>=64 threads in one block)
-  - [65536, 1024]     # additional block size #2
+  - [16, 16, 32]      # base configuration (16x16 blocks, 32 photos)
+  - [8, 8, 32]        # additional block size #1 (64 threads)
+  - [32, 32, 32]      # additional block size #2 (1024 threads)
+  - [32, 8, 32]       # additional block shape #1 (wide)
+  - [128, 1, 32]      # additional block shape #2 (one row)
+  - [16, 16, 8]       # additional batch size #1 (8 photos)
+  - [16, 16, 64]      # additional batch size #2 (64 photos)

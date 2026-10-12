@@ -1,0 +1,154 @@
+===== ./streams_assignment 16 16 32 =====
+Device: NVIDIA GeForce GTX 1650 Ti (sm_75, 16 SMs, 2 copy engine(s), concurrent kernels: yes)
+Batch: 32 photos of 1280x720 (6 distinct, 118.0 MB per direction)   Blur: 25 taps per pass
+Block: 16x16 (256 threads)   Threads per kernel: 29491200 (one per pixel)
+
+End-to-end time (copy in + 2 blur kernels + copy out), 3 timed runs after 1 warm-up:
+  variant                    run 1   run 2   run 3    avg ms  speedup  check
+  sync, pageable            61.611  58.614  52.157    57.461    1.00x  PASS
+  1 stream, pinned          55.865  51.251  51.120    52.745    1.09x  PASS
+  2 streams, pinned         35.083  35.084  35.226    35.131    1.64x  PASS
+  4 streams, pinned         28.086  28.098  28.250    28.145    2.04x  PASS
+  8 streams, pinned         24.966  25.396  25.587    25.316    2.27x  PASS
+  3-stream event pipeline   22.365  22.224  22.174    22.254    2.58x  PASS
+
+Stage breakdown, 1 stream, events between stages (ms):
+  copy in 18.676 | kernel 1 (horizontal blur) 6.988 | kernel 2 (vertical blur) 6.845 | copy out 18.069
+  sum 50.577 ms; with perfect copy/compute overlap the longest stage, 18.676 ms, is the floor
+
+Saved 6 blurred photos to output/
+
+All variants produce identical output (baseline checked against the CPU).
+
+===== ./streams_assignment 8 8 32 =====
+Device: NVIDIA GeForce GTX 1650 Ti (sm_75, 16 SMs, 2 copy engine(s), concurrent kernels: yes)
+Batch: 32 photos of 1280x720 (6 distinct, 118.0 MB per direction)   Blur: 25 taps per pass
+Block: 8x8 (64 threads)   Threads per kernel: 29491200 (one per pixel)
+
+End-to-end time (copy in + 2 blur kernels + copy out), 3 timed runs after 1 warm-up:
+  variant                    run 1   run 2   run 3    avg ms  speedup  check
+  sync, pageable            53.018  54.479  52.828    53.441    1.00x  PASS
+  1 stream, pinned          56.087  52.762  51.654    53.501    1.00x  PASS
+  2 streams, pinned         35.654  35.349  35.130    35.378    1.51x  PASS
+  4 streams, pinned         28.030  28.336  28.021    28.129    1.90x  PASS
+  8 streams, pinned         25.034  24.662  24.738    24.811    2.15x  PASS
+  3-stream event pipeline   22.482  22.482  22.291    22.418    2.38x  PASS
+
+Stage breakdown, 1 stream, events between stages (ms):
+  copy in 18.600 | kernel 1 (horizontal blur) 7.186 | kernel 2 (vertical blur) 7.090 | copy out 18.357
+  sum 51.232 ms; with perfect copy/compute overlap the longest stage, 18.600 ms, is the floor
+
+Saved 6 blurred photos to output/
+
+All variants produce identical output (baseline checked against the CPU).
+
+===== ./streams_assignment 32 32 32 =====
+Device: NVIDIA GeForce GTX 1650 Ti (sm_75, 16 SMs, 2 copy engine(s), concurrent kernels: yes)
+Batch: 32 photos of 1280x720 (6 distinct, 118.0 MB per direction)   Blur: 25 taps per pass
+Block: 32x32 (1024 threads)   Threads per kernel: 29491200 (one per pixel)
+
+End-to-end time (copy in + 2 blur kernels + copy out), 3 timed runs after 1 warm-up:
+  variant                    run 1   run 2   run 3    avg ms  speedup  check
+  sync, pageable            59.759  58.285  57.992    58.678    1.00x  PASS
+  1 stream, pinned          64.641  61.839  57.685    61.389    0.96x  PASS
+  2 streams, pinned         38.238  39.054  38.436    38.576    1.52x  PASS
+  4 streams, pinned         30.238  29.976  29.145    29.786    1.97x  PASS
+  8 streams, pinned         25.270  25.175  25.352    25.266    2.32x  PASS
+  3-stream event pipeline   22.895  22.301  22.476    22.557    2.60x  PASS
+
+Stage breakdown, 1 stream, events between stages (ms):
+  copy in 18.530 | kernel 1 (horizontal blur) 9.671 | kernel 2 (vertical blur) 9.551 | copy out 18.063
+  sum 55.815 ms; with perfect copy/compute overlap the longest stage, 19.222 ms, is the floor
+
+Saved 6 blurred photos to output/
+
+All variants produce identical output (baseline checked against the CPU).
+
+===== ./streams_assignment 32 8 32 =====
+Device: NVIDIA GeForce GTX 1650 Ti (sm_75, 16 SMs, 2 copy engine(s), concurrent kernels: yes)
+Batch: 32 photos of 1280x720 (6 distinct, 118.0 MB per direction)   Blur: 25 taps per pass
+Block: 32x8 (256 threads)   Threads per kernel: 29491200 (one per pixel)
+
+End-to-end time (copy in + 2 blur kernels + copy out), 3 timed runs after 1 warm-up:
+  variant                    run 1   run 2   run 3    avg ms  speedup  check
+  sync, pageable            53.265  52.344  54.125    53.245    1.00x  PASS
+  1 stream, pinned          55.663  55.606  51.627    54.299    0.98x  PASS
+  2 streams, pinned         35.583  35.638  35.365    35.528    1.50x  PASS
+  4 streams, pinned         28.246  28.921  28.790    28.652    1.86x  PASS
+  8 streams, pinned         24.826  26.170  24.607    25.201    2.11x  PASS
+  3-stream event pipeline   22.659  22.805  22.626    22.697    2.35x  PASS
+
+Stage breakdown, 1 stream, events between stages (ms):
+  copy in 18.845 | kernel 1 (horizontal blur) 6.952 | kernel 2 (vertical blur) 6.808 | copy out 18.095
+  sum 50.700 ms; with perfect copy/compute overlap the longest stage, 18.845 ms, is the floor
+
+Saved 6 blurred photos to output/
+
+All variants produce identical output (baseline checked against the CPU).
+
+===== ./streams_assignment 128 1 32 =====
+Device: NVIDIA GeForce GTX 1650 Ti (sm_75, 16 SMs, 2 copy engine(s), concurrent kernels: yes)
+Batch: 32 photos of 1280x720 (6 distinct, 118.0 MB per direction)   Blur: 25 taps per pass
+Block: 128x1 (128 threads)   Threads per kernel: 29491200 (one per pixel)
+
+End-to-end time (copy in + 2 blur kernels + copy out), 3 timed runs after 1 warm-up:
+  variant                    run 1   run 2   run 3    avg ms  speedup  check
+  sync, pageable            59.213  56.423  57.373    57.670    1.00x  PASS
+  1 stream, pinned          55.740  55.770  56.248    55.919    1.03x  PASS
+  2 streams, pinned         34.822  35.500  35.164    35.162    1.64x  PASS
+  4 streams, pinned         28.111  28.563  28.199    28.291    2.04x  PASS
+  8 streams, pinned         25.042  24.789  24.832    24.888    2.32x  PASS
+  3-stream event pipeline   22.206  22.545  22.222    22.324    2.58x  PASS
+
+Stage breakdown, 1 stream, events between stages (ms):
+  copy in 18.528 | kernel 1 (horizontal blur) 6.985 | kernel 2 (vertical blur) 7.010 | copy out 18.331
+  sum 50.853 ms; with perfect copy/compute overlap the longest stage, 18.528 ms, is the floor
+
+Saved 6 blurred photos to output/
+
+All variants produce identical output (baseline checked against the CPU).
+
+===== ./streams_assignment 16 16 8 =====
+Device: NVIDIA GeForce GTX 1650 Ti (sm_75, 16 SMs, 2 copy engine(s), concurrent kernels: yes)
+Batch: 8 photos of 1280x720 (6 distinct, 29.5 MB per direction)   Blur: 25 taps per pass
+Block: 16x16 (256 threads)   Threads per kernel: 7372800 (one per pixel)
+
+End-to-end time (copy in + 2 blur kernels + copy out), 3 timed runs after 1 warm-up:
+  variant                    run 1   run 2   run 3    avg ms  speedup  check
+  sync, pageable            13.271  13.832  13.471    13.525    1.00x  PASS
+  1 stream, pinned          14.227  14.124  14.467    14.273    0.95x  PASS
+  2 streams, pinned          9.410  10.019  10.522     9.984    1.35x  PASS
+  4 streams, pinned          7.587   7.335   7.855     7.592    1.78x  PASS
+  8 streams, pinned          6.579   6.340   6.440     6.453    2.10x  PASS
+  3-stream event pipeline    6.433   6.590   6.759     6.594    2.05x  PASS
+
+Stage breakdown, 1 stream, events between stages (ms):
+  copy in 4.705 | kernel 1 (horizontal blur) 1.801 | kernel 2 (vertical blur) 1.723 | copy out 4.542
+  sum 12.771 ms; with perfect copy/compute overlap the longest stage, 4.705 ms, is the floor
+
+Saved 6 blurred photos to output/
+
+All variants produce identical output (baseline checked against the CPU).
+
+===== ./streams_assignment 16 16 64 =====
+Device: NVIDIA GeForce GTX 1650 Ti (sm_75, 16 SMs, 2 copy engine(s), concurrent kernels: yes)
+Batch: 64 photos of 1280x720 (6 distinct, 235.9 MB per direction)   Blur: 25 taps per pass
+Block: 16x16 (256 threads)   Threads per kernel: 58982400 (one per pixel)
+
+End-to-end time (copy in + 2 blur kernels + copy out), 3 timed runs after 1 warm-up:
+  variant                    run 1   run 2   run 3    avg ms  speedup  check
+  sync, pageable           105.935 106.346 109.888   107.390    1.00x  PASS
+  1 stream, pinned         111.994 101.303 101.648   104.982    1.02x  PASS
+  2 streams, pinned         70.010  69.685  70.884    70.193    1.53x  PASS
+  4 streams, pinned         56.023  57.232  56.404    56.553    1.90x  PASS
+  8 streams, pinned         49.686  49.464  50.614    49.921    2.15x  PASS
+  3-stream event pipeline   44.027  43.854  45.619    44.500    2.41x  PASS
+
+Stage breakdown, 1 stream, events between stages (ms):
+  copy in 37.252 | kernel 1 (horizontal blur) 14.063 | kernel 2 (vertical blur) 13.890 | copy out 36.207
+  sum 101.412 ms; with perfect copy/compute overlap the longest stage, 37.252 ms, is the floor
+
+Saved 6 blurred photos to output/
+
+All variants produce identical output (baseline checked against the CPU).
+
