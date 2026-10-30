@@ -1,0 +1,737 @@
+################ NPP: box filter ################
+===== Initial state (Lena.pgm 512x512, 5x5 mask) =====
+----- boxFilterNPP/boxFilterNPP -input=../common/data/Lena.pgm -output=boxFilterNPP/out/Lena_boxFilter.pgm -----
+C:\Users\njp34\OneDrive - Johns Hopkins\GPU_Programming\module8\boxFilterNPP\boxFilterNPP.exe Starting...
+
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+cudaSetDevice GPU0 = NVIDIA GeForce GTX 1650 Ti
+NPP Library Version 13.0.1
+  CUDA Driver  Version: 13.0
+  CUDA Runtime Version: 13.0
+  Device 0: <NVIDIA GeForce GTX 1650 Ti >, Compute SM 7.5 detected
+boxFilterNPP opened: <../common/data/Lena.pgm> successfully!
+Saved image: boxFilterNPP/out/Lena_boxFilter.pgm
+image 512 x 512 (0.26 MPix), mask 5 x 5
+  upload   (H->D) :    0.892 ms
+  NPP box filter  :    0.027 ms  (avg of 20, 9613 MPix/s)
+  download (D->H) :    0.225 ms
+  CPU box filter  :   13.167 ms  (single thread, naive)
+  speedup (kernel only)     : 482.8x
+  speedup (incl. transfers) : 11.5x
+  vs CPU: max |diff| = 0, pixels differing = 0 of 262144
+
+===== Mask size on Lena (odd sizes) =====
+----- boxFilterNPP/boxFilterNPP -input=../common/data/Lena.pgm -mask=3 -output=boxFilterNPP/out/Lena_box3.pgm -----
+C:\Users\njp34\OneDrive - Johns Hopkins\GPU_Programming\module8\boxFilterNPP\boxFilterNPP.exe Starting...
+
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+cudaSetDevice GPU0 = NVIDIA GeForce GTX 1650 Ti
+NPP Library Version 13.0.1
+  CUDA Driver  Version: 13.0
+  CUDA Runtime Version: 13.0
+  Device 0: <NVIDIA GeForce GTX 1650 Ti >, Compute SM 7.5 detected
+boxFilterNPP opened: <../common/data/Lena.pgm> successfully!
+Saved image: boxFilterNPP/out/Lena_box3.pgm
+image 512 x 512 (0.26 MPix), mask 3 x 3
+  upload   (H->D) :    0.812 ms
+  NPP box filter  :    0.014 ms  (avg of 20, 18806 MPix/s)
+  download (D->H) :    0.171 ms
+  CPU box filter  :    5.020 ms  (single thread, naive)
+  speedup (kernel only)     : 360.1x
+  speedup (incl. transfers) : 5.0x
+  vs CPU: max |diff| = 0, pixels differing = 0 of 262144
+
+----- boxFilterNPP/boxFilterNPP -input=../common/data/Lena.pgm -mask=7 -output=boxFilterNPP/out/Lena_box7.pgm -----
+C:\Users\njp34\OneDrive - Johns Hopkins\GPU_Programming\module8\boxFilterNPP\boxFilterNPP.exe Starting...
+
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+cudaSetDevice GPU0 = NVIDIA GeForce GTX 1650 Ti
+NPP Library Version 13.0.1
+  CUDA Driver  Version: 13.0
+  CUDA Runtime Version: 13.0
+  Device 0: <NVIDIA GeForce GTX 1650 Ti >, Compute SM 7.5 detected
+boxFilterNPP opened: <../common/data/Lena.pgm> successfully!
+Saved image: boxFilterNPP/out/Lena_box7.pgm
+image 512 x 512 (0.26 MPix), mask 7 x 7
+  upload   (H->D) :    0.786 ms
+  NPP box filter  :    0.199 ms  (avg of 20, 1319 MPix/s)
+  download (D->H) :    0.166 ms
+  CPU box filter  :   19.482 ms  (single thread, naive)
+  speedup (kernel only)     : 98.1x
+  speedup (incl. transfers) : 16.9x
+  vs CPU: max |diff| = 0, pixels differing = 0 of 262144
+
+----- boxFilterNPP/boxFilterNPP -input=../common/data/Lena.pgm -mask=9 -output=boxFilterNPP/out/Lena_box9.pgm -----
+C:\Users\njp34\OneDrive - Johns Hopkins\GPU_Programming\module8\boxFilterNPP\boxFilterNPP.exe Starting...
+
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+cudaSetDevice GPU0 = NVIDIA GeForce GTX 1650 Ti
+NPP Library Version 13.0.1
+  CUDA Driver  Version: 13.0
+  CUDA Runtime Version: 13.0
+  Device 0: <NVIDIA GeForce GTX 1650 Ti >, Compute SM 7.5 detected
+boxFilterNPP opened: <../common/data/Lena.pgm> successfully!
+Saved image: boxFilterNPP/out/Lena_box9.pgm
+image 512 x 512 (0.26 MPix), mask 9 x 9
+  upload   (H->D) :    0.659 ms
+  NPP box filter  :    0.303 ms  (avg of 20, 865 MPix/s)
+  download (D->H) :    0.197 ms
+  CPU box filter  :   29.396 ms  (single thread, naive)
+  speedup (kernel only)     : 97.0x
+  speedup (incl. transfers) : 25.4x
+  vs CPU: max |diff| = 0, pixels differing = 0 of 262144
+
+----- boxFilterNPP/boxFilterNPP -input=../common/data/Lena.pgm -mask=15 -output=boxFilterNPP/out/Lena_box15.pgm -----
+C:\Users\njp34\OneDrive - Johns Hopkins\GPU_Programming\module8\boxFilterNPP\boxFilterNPP.exe Starting...
+
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+cudaSetDevice GPU0 = NVIDIA GeForce GTX 1650 Ti
+NPP Library Version 13.0.1
+  CUDA Driver  Version: 13.0
+  CUDA Runtime Version: 13.0
+  Device 0: <NVIDIA GeForce GTX 1650 Ti >, Compute SM 7.5 detected
+boxFilterNPP opened: <../common/data/Lena.pgm> successfully!
+Saved image: boxFilterNPP/out/Lena_box15.pgm
+image 512 x 512 (0.26 MPix), mask 15 x 15
+  upload   (H->D) :    0.693 ms
+  NPP box filter  :    0.702 ms  (avg of 20, 373 MPix/s)
+  download (D->H) :    0.190 ms
+  CPU box filter  :   83.700 ms  (single thread, naive)
+  speedup (kernel only)     : 119.2x
+  speedup (incl. transfers) : 52.8x
+  vs CPU: max |diff| = 0, pixels differing = 0 of 262144
+
+----- boxFilterNPP/boxFilterNPP -input=../common/data/Lena.pgm -mask=31 -output=boxFilterNPP/out/Lena_box31.pgm -----
+C:\Users\njp34\OneDrive - Johns Hopkins\GPU_Programming\module8\boxFilterNPP\boxFilterNPP.exe Starting...
+
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+cudaSetDevice GPU0 = NVIDIA GeForce GTX 1650 Ti
+NPP Library Version 13.0.1
+  CUDA Driver  Version: 13.0
+  CUDA Runtime Version: 13.0
+  Device 0: <NVIDIA GeForce GTX 1650 Ti >, Compute SM 7.5 detected
+boxFilterNPP opened: <../common/data/Lena.pgm> successfully!
+Saved image: boxFilterNPP/out/Lena_box31.pgm
+image 512 x 512 (0.26 MPix), mask 31 x 31
+  upload   (H->D) :    0.688 ms
+  NPP box filter  :    2.747 ms  (avg of 20, 95 MPix/s)
+  download (D->H) :    0.193 ms
+  CPU box filter  :  280.635 ms  (single thread, naive)
+  speedup (kernel only)     : 102.2x
+  speedup (incl. transfers) : 77.3x
+  vs CPU: max |diff| = 0, pixels differing = 0 of 262144
+
+===== Even mask sizes (anchor no longer centered) =====
+----- boxFilterNPP/boxFilterNPP -input=../common/data/Lena.pgm -mask=4 -output=boxFilterNPP/out/Lena_box4.pgm -----
+C:\Users\njp34\OneDrive - Johns Hopkins\GPU_Programming\module8\boxFilterNPP\boxFilterNPP.exe Starting...
+
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+cudaSetDevice GPU0 = NVIDIA GeForce GTX 1650 Ti
+NPP Library Version 13.0.1
+  CUDA Driver  Version: 13.0
+  CUDA Runtime Version: 13.0
+  Device 0: <NVIDIA GeForce GTX 1650 Ti >, Compute SM 7.5 detected
+boxFilterNPP opened: <../common/data/Lena.pgm> successfully!
+Saved image: boxFilterNPP/out/Lena_box4.pgm
+image 512 x 512 (0.26 MPix), mask 4 x 4
+  upload   (H->D) :    0.752 ms
+  NPP box filter  :    0.097 ms  (avg of 20, 2711 MPix/s)
+  download (D->H) :    0.170 ms
+  CPU box filter  :    6.355 ms  (single thread, naive)
+  speedup (kernel only)     : 65.7x
+  speedup (incl. transfers) : 6.2x
+  vs CPU: max |diff| = 0, pixels differing = 0 of 262144
+
+----- boxFilterNPP/boxFilterNPP -input=../common/data/Lena.pgm -mask=8 -output=boxFilterNPP/out/Lena_box8.pgm -----
+C:\Users\njp34\OneDrive - Johns Hopkins\GPU_Programming\module8\boxFilterNPP\boxFilterNPP.exe Starting...
+
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+cudaSetDevice GPU0 = NVIDIA GeForce GTX 1650 Ti
+NPP Library Version 13.0.1
+  CUDA Driver  Version: 13.0
+  CUDA Runtime Version: 13.0
+  Device 0: <NVIDIA GeForce GTX 1650 Ti >, Compute SM 7.5 detected
+boxFilterNPP opened: <../common/data/Lena.pgm> successfully!
+Saved image: boxFilterNPP/out/Lena_box8.pgm
+image 512 x 512 (0.26 MPix), mask 8 x 8
+  upload   (H->D) :    0.664 ms
+  NPP box filter  :    0.259 ms  (avg of 20, 1011 MPix/s)
+  download (D->H) :    0.265 ms
+  CPU box filter  :   23.067 ms  (single thread, naive)
+  speedup (kernel only)     : 89.0x
+  speedup (incl. transfers) : 19.4x
+  vs CPU: max |diff| = 0, pixels differing = 0 of 262144
+
+===== Larger synthetic images, 5x5 mask =====
+----- boxFilterNPP/boxFilterNPP -size=1024 -output=boxFilterNPP/out/synthetic_1024.pgm -----
+C:\Users\njp34\OneDrive - Johns Hopkins\GPU_Programming\module8\boxFilterNPP\boxFilterNPP.exe Starting...
+
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+cudaSetDevice GPU0 = NVIDIA GeForce GTX 1650 Ti
+NPP Library Version 13.0.1
+  CUDA Driver  Version: 13.0
+  CUDA Runtime Version: 13.0
+  Device 0: <NVIDIA GeForce GTX 1650 Ti >, Compute SM 7.5 detected
+boxFilterNPP using synthetic 1024x1024 image
+Saved image: boxFilterNPP/out/synthetic_1024.pgm
+image 1024 x 1024 (1.05 MPix), mask 5 x 5
+  upload   (H->D) :    0.830 ms
+  NPP box filter  :    0.057 ms  (avg of 20, 18338 MPix/s)
+  download (D->H) :    0.655 ms
+  CPU box filter  :   38.935 ms  (single thread, naive)
+  speedup (kernel only)     : 680.9x
+  speedup (incl. transfers) : 25.2x
+  vs CPU: max |diff| = 0, pixels differing = 0 of 1048576
+
+----- boxFilterNPP/boxFilterNPP -size=2048 -output=boxFilterNPP/out/synthetic_2048.pgm -----
+C:\Users\njp34\OneDrive - Johns Hopkins\GPU_Programming\module8\boxFilterNPP\boxFilterNPP.exe Starting...
+
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+cudaSetDevice GPU0 = NVIDIA GeForce GTX 1650 Ti
+NPP Library Version 13.0.1
+  CUDA Driver  Version: 13.0
+  CUDA Runtime Version: 13.0
+  Device 0: <NVIDIA GeForce GTX 1650 Ti >, Compute SM 7.5 detected
+boxFilterNPP using synthetic 2048x2048 image
+Saved image: boxFilterNPP/out/synthetic_2048.pgm
+image 2048 x 2048 (4.19 MPix), mask 5 x 5
+  upload   (H->D) :    1.456 ms
+  NPP box filter  :    0.147 ms  (avg of 20, 28505 MPix/s)
+  download (D->H) :    1.444 ms
+  CPU box filter  :  157.968 ms  (single thread, naive)
+  speedup (kernel only)     : 1073.6x
+  speedup (incl. transfers) : 51.8x
+  vs CPU: max |diff| = 0, pixels differing = 0 of 4194304
+
+----- boxFilterNPP/boxFilterNPP -size=4096 -output=boxFilterNPP/out/synthetic_4096.pgm -----
+C:\Users\njp34\OneDrive - Johns Hopkins\GPU_Programming\module8\boxFilterNPP\boxFilterNPP.exe Starting...
+
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+cudaSetDevice GPU0 = NVIDIA GeForce GTX 1650 Ti
+NPP Library Version 13.0.1
+  CUDA Driver  Version: 13.0
+  CUDA Runtime Version: 13.0
+  Device 0: <NVIDIA GeForce GTX 1650 Ti >, Compute SM 7.5 detected
+boxFilterNPP using synthetic 4096x4096 image
+Saved image: boxFilterNPP/out/synthetic_4096.pgm
+image 4096 x 4096 (16.78 MPix), mask 5 x 5
+  upload   (H->D) :    5.422 ms
+  NPP box filter  :    0.451 ms  (avg of 20, 37203 MPix/s)
+  download (D->H) :    3.739 ms
+  CPU box filter  :  591.093 ms  (single thread, naive)
+  speedup (kernel only)     : 1310.7x
+  speedup (incl. transfers) : 61.5x
+  vs CPU: max |diff| = 0, pixels differing = 0 of 16777216
+
+----- boxFilterNPP/boxFilterNPP -size=8192 -output=boxFilterNPP/out/synthetic_8192.pgm -----
+C:\Users\njp34\OneDrive - Johns Hopkins\GPU_Programming\module8\boxFilterNPP\boxFilterNPP.exe Starting...
+
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+cudaSetDevice GPU0 = NVIDIA GeForce GTX 1650 Ti
+NPP Library Version 13.0.1
+  CUDA Driver  Version: 13.0
+  CUDA Runtime Version: 13.0
+  Device 0: <NVIDIA GeForce GTX 1650 Ti >, Compute SM 7.5 detected
+boxFilterNPP using synthetic 8192x8192 image
+Saved image: boxFilterNPP/out/synthetic_8192.pgm
+image 8192 x 8192 (67.11 MPix), mask 5 x 5
+  upload   (H->D) :   14.417 ms
+  NPP box filter  :    1.507 ms  (avg of 20, 44530 MPix/s)
+  download (D->H) :   21.591 ms
+  CPU box filter  : 2419.247 ms  (single thread, naive)
+  speedup (kernel only)     : 1605.3x
+  speedup (incl. transfers) : 64.5x
+  vs CPU: max |diff| = 0, pixels differing = 0 of 67108864
+
+===== Large image and large mask =====
+----- boxFilterNPP/boxFilterNPP -size=4096 -mask=15 -output=boxFilterNPP/out/synthetic_4096_box15.pgm -----
+C:\Users\njp34\OneDrive - Johns Hopkins\GPU_Programming\module8\boxFilterNPP\boxFilterNPP.exe Starting...
+
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+cudaSetDevice GPU0 = NVIDIA GeForce GTX 1650 Ti
+NPP Library Version 13.0.1
+  CUDA Driver  Version: 13.0
+  CUDA Runtime Version: 13.0
+  Device 0: <NVIDIA GeForce GTX 1650 Ti >, Compute SM 7.5 detected
+boxFilterNPP using synthetic 4096x4096 image
+Saved image: boxFilterNPP/out/synthetic_4096_box15.pgm
+image 4096 x 4096 (16.78 MPix), mask 15 x 15
+  upload   (H->D) :    4.233 ms
+  NPP box filter  :   24.147 ms  (avg of 20, 695 MPix/s)
+  download (D->H) :    3.860 ms
+  CPU box filter  : 4531.646 ms  (single thread, naive)
+  speedup (kernel only)     : 187.7x
+  speedup (incl. transfers) : 140.6x
+  vs CPU: max |diff| = 0, pixels differing = 0 of 16777216
+
+################ Thrust: host/device vectors, random data, algorithms ################
+===== Initial state =====
+----- thrust_examples/thrust_example -----
+H has size 4
+H[0] = 14
+H[1] = 20
+H[2] = 38
+H[3] = 46
+H now has size 2
+D[0] = 99
+D[1] = 88
+
+===== Random data, small; same seed twice, then a different seed =====
+----- thrust_examples/thrust_example 1000 1234 -----
+H has size 4
+H[0] = 14
+H[1] = 20
+H[2] = 38
+H[3] = 46
+H now has size 2
+D[0] = 99
+D[1] = 88
+
+=== Random data: N = 1000, seed = 1234 ===
+first values: 27 930 69 248 457 77 480 142 
+host and device generators agree: yes
+  operation                              GPU ms     CPU ms
+  device_vector allocate+fill             1.916          -
+  generate random ints                    0.091      0.044
+  copy D -> H (bulk)                      0.026          -  (0.15 GB/s)
+  read D[i] one at a time                     -     13.773  (13.8 us per element, 1000 reads)
+  reduce (sum)                            0.154      0.000  sum=517138 mean=517.14 match
+  count_if (x < 100)                      0.081      0.001  91 (9.10%) match
+  minmax_element                          0.303      0.002  min=1 max=999 match
+  sort                                    0.091      0.037  match
+
+----- thrust_examples/thrust_example 1000 1234 -----
+H has size 4
+H[0] = 14
+H[1] = 20
+H[2] = 38
+H[3] = 46
+H now has size 2
+D[0] = 99
+D[1] = 88
+
+=== Random data: N = 1000, seed = 1234 ===
+first values: 27 930 69 248 457 77 480 142 
+host and device generators agree: yes
+  operation                              GPU ms     CPU ms
+  device_vector allocate+fill             2.010          -
+  generate random ints                    0.083      0.044
+  copy D -> H (bulk)                      0.023          -  (0.17 GB/s)
+  read D[i] one at a time                     -     13.958  (14.0 us per element, 1000 reads)
+  reduce (sum)                            0.147      0.000  sum=517138 mean=517.14 match
+  count_if (x < 100)                      0.088      0.001  91 (9.10%) match
+  minmax_element                          0.291      0.003  min=1 max=999 match
+  sort                                    0.092      0.040  match
+
+----- thrust_examples/thrust_example 1000 42 -----
+H has size 4
+H[0] = 14
+H[1] = 20
+H[2] = 38
+H[3] = 46
+H now has size 2
+D[0] = 99
+D[1] = 88
+
+=== Random data: N = 1000, seed = 42 ===
+first values: 0 571 256 447 654 966 628 716 
+host and device generators agree: yes
+  operation                              GPU ms     CPU ms
+  device_vector allocate+fill             2.281          -
+  generate random ints                    0.092      0.047
+  copy D -> H (bulk)                      0.029          -  (0.14 GB/s)
+  read D[i] one at a time                     -     14.214  (14.2 us per element, 1000 reads)
+  reduce (sum)                            0.142      0.000  sum=503001 mean=503.00 match
+  count_if (x < 100)                      0.117      0.001  100 (10.00%) match
+  minmax_element                          0.302      0.003  min=0 max=999 match
+  sort                                    0.095      0.042  match
+
+===== Larger data sets =====
+----- thrust_examples/thrust_example 1000000 -----
+H has size 4
+H[0] = 14
+H[1] = 20
+H[2] = 38
+H[3] = 46
+H now has size 2
+D[0] = 99
+D[1] = 88
+
+=== Random data: N = 1000000, seed = 1234 ===
+first values: 27 930 69 248 457 77 480 142 
+host and device generators agree: yes
+  operation                              GPU ms     CPU ms
+  device_vector allocate+fill             2.142          -
+  generate random ints                    0.689     84.982
+  copy D -> H (bulk)                      1.460          -  (2.74 GB/s)
+  read D[i] one at a time                     -     14.611  (14.6 us per element, 1000 reads)
+  reduce (sum)                            0.235      0.352  sum=499081331 mean=499.08 match
+  count_if (x < 100)                      0.119      0.672  100365 (10.04%) match
+  minmax_element                          0.342      2.201  min=0 max=999 match
+  sort                                    1.149     37.986  match
+
+----- thrust_examples/thrust_example 16777216 -----
+H has size 4
+H[0] = 14
+H[1] = 20
+H[2] = 38
+H[3] = 46
+H now has size 2
+D[0] = 99
+D[1] = 88
+
+=== Random data: N = 16777216, seed = 1234 ===
+first values: 27 930 69 248 457 77 480 142 
+host and device generators agree: yes
+  operation                              GPU ms     CPU ms
+  device_vector allocate+fill             3.816          -
+  generate random ints                   11.864   1713.791
+  copy D -> H (bulk)                     20.215          -  (3.32 GB/s)
+  read D[i] one at a time                     -     12.158  (12.2 us per element, 1000 reads)
+  reduce (sum)                            0.505      5.602  sum=8380018932 mean=499.49 match
+  count_if (x < 100)                      0.531     11.890  1676788 (9.99%) match
+  minmax_element                          0.860     46.335  min=0 max=999 match
+  sort                                   11.118    638.833  match
+
+----- thrust_examples/thrust_example 33554432 -----
+H has size 4
+H[0] = 14
+H[1] = 20
+H[2] = 38
+H[3] = 46
+H now has size 2
+D[0] = 99
+D[1] = 88
+
+=== Random data: N = 33554432, seed = 1234 ===
+first values: 27 930 69 248 457 77 480 142 
+host and device generators agree: yes
+  operation                              GPU ms     CPU ms
+  device_vector allocate+fill             6.153          -
+  generate random ints                   24.438   3655.384
+  copy D -> H (bulk)                     52.962          -  (2.53 GB/s)
+  read D[i] one at a time                     -     14.665  (14.7 us per element, 1000 reads)
+  reduce (sum)                            0.850     11.436  sum=16759758365 mean=499.48 match
+  count_if (x < 100)                      0.877     22.604  3354509 (10.00%) match
+  minmax_element                          1.325     79.182  min=0 max=999 match
+  sort                                   20.027   1307.772  match
+
+################ PageRank: nvGRAPH sample ported to cuSPARSE + Thrust ################
+(nvgraph_Pagerank.cpp itself needs nvGRAPH, removed in CUDA 11; not built)
+===== Initial state (6-vertex sample graph, alpha 0.85 then 0.90) =====
+----- nvgraph_examples/pagerank_cusparse -----
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+> Detected Compute SM 7.5 hardware with 16 multi-processors
+graph: 6 vertices, 10 edges, 1 dangling (nvgraph_Pagerank.cpp sample)
+tolerance 1.0e-06 (L1 change), max 500 iterations
+
+pr_1, alpha = 0.85  (24 iterations, 16.577 ms, 0.691 ms/iter, residual 9.39e-07)
+  SpMV share of solve time: 71% (0.488 ms per SpMV)
+0.051705
+0.073679
+0.057413
+0.348703
+0.199904
+0.268596
+
+pr_2, alpha = 0.90, initial guess = pr_1  (23 iterations, 5.884 ms, residual 7.08e-07)
+0.037212
+0.053958
+0.041506
+0.375081
+0.205998
+0.286246
+
+max |pr_2 - expected (Langville & Meyer)| = 4.57e-05
+
+CPU reference (alpha 0.85, double): 24 iterations, 0.022 ms, 0.001 ms/iter
+  ||pr_1 - cpu||_1 = 3.71e-08, GPU setup (H->D + cuSPARSE descriptors) 9.1 ms
+  speedup per iteration: 0.00132x
+
+Done!
+
+===== Damping factor on the sample graph =====
+----- nvgraph_examples/pagerank_cusparse -alpha=0.5 -----
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+> Detected Compute SM 7.5 hardware with 16 multi-processors
+graph: 6 vertices, 10 edges, 1 dangling (nvgraph_Pagerank.cpp sample)
+tolerance 1.0e-06 (L1 change), max 500 iterations
+
+pr_1, alpha = 0.50  (13 iterations, 7.503 ms, 0.577 ms/iter, residual 3.65e-07)
+  SpMV share of solve time: 65% (0.373 ms per SpMV)
+0.116183
+0.145228
+0.124481
+0.239004
+0.175934
+0.199170
+
+pr_2, alpha = 0.50, initial guess = pr_1  (1 iterations, 0.291 ms, residual 1.49e-07)
+0.116183
+0.145228
+0.124481
+0.239004
+0.175934
+0.199170
+
+
+CPU reference (alpha 0.50, double): 13 iterations, 0.022 ms, 0.002 ms/iter
+  ||pr_1 - cpu||_1 = 3.73e-08, GPU setup (H->D + cuSPARSE descriptors) 2.6 ms
+  speedup per iteration: 0.00291x
+
+Done!
+
+----- nvgraph_examples/pagerank_cusparse -alpha=0.99 -----
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+> Detected Compute SM 7.5 hardware with 16 multi-processors
+graph: 6 vertices, 10 edges, 1 dangling (nvgraph_Pagerank.cpp sample)
+tolerance 1.0e-06 (L1 change), max 500 iterations
+
+pr_1, alpha = 0.99  (33 iterations, 11.452 ms, 0.347 ms/iter, residual 9.57e-07)
+  SpMV share of solve time: 46% (0.158 ms per SpMV)
+0.004359
+0.006517
+0.004900
+0.436222
+0.220289
+0.327714
+
+pr_2, alpha = 0.99, initial guess = pr_1  (1 iterations, 0.262 ms, residual 6.36e-07)
+0.004359
+0.006516
+0.004900
+0.436222
+0.220289
+0.327715
+
+
+CPU reference (alpha 0.99, double): 33 iterations, 0.020 ms, 0.001 ms/iter
+  ||pr_1 - cpu||_1 = 2.36e-08, GPU setup (H->D + cuSPARSE descriptors) 2.8 ms
+  speedup per iteration: 0.00176x
+
+Done!
+
+===== Tolerance on the sample graph =====
+----- nvgraph_examples/pagerank_cusparse -tol=1e-3 -----
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+> Detected Compute SM 7.5 hardware with 16 multi-processors
+graph: 6 vertices, 10 edges, 1 dangling (nvgraph_Pagerank.cpp sample)
+tolerance 1.0e-03 (L1 change), max 500 iterations
+
+pr_1, alpha = 0.85  (12 iterations, 7.809 ms, 0.651 ms/iter, residual 6.70e-04)
+  SpMV share of solve time: 64% (0.416 ms per SpMV)
+0.051821
+0.073882
+0.057548
+0.348465
+0.199852
+0.268432
+
+pr_2, alpha = 0.90, initial guess = pr_1  (9 iterations, 2.145 ms, residual 7.74e-04)
+0.037367
+0.054227
+0.041687
+0.374773
+0.205920
+0.286027
+
+max |pr_2 - expected (Langville & Meyer)| = 3.27e-04
+
+CPU reference (alpha 0.85, double): 12 iterations, 0.020 ms, 0.002 ms/iter
+  ||pr_1 - cpu||_1 = 4.84e-08, GPU setup (H->D + cuSPARSE descriptors) 2.8 ms
+  speedup per iteration: 0.00255x
+
+Done!
+
+----- nvgraph_examples/pagerank_cusparse -tol=1e-9 -----
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+> Detected Compute SM 7.5 hardware with 16 multi-processors
+graph: 6 vertices, 10 edges, 1 dangling (nvgraph_Pagerank.cpp sample)
+tolerance 1.0e-09 (L1 change), max 500 iterations
+
+pr_1, alpha = 0.85  (500 iterations, 125.980 ms, 0.252 ms/iter, residual 1.23e-07)
+  SpMV share of solve time: 21% (0.053 ms per SpMV)
+0.051705
+0.073679
+0.057412
+0.348704
+0.199904
+0.268596
+
+pr_2, alpha = 0.90, initial guess = pr_1  (40 iterations, 10.249 ms, residual 0.00e+00)
+0.037212
+0.053957
+0.041506
+0.375081
+0.205998
+0.286246
+
+max |pr_2 - expected (Langville & Meyer)| = 4.59e-05
+
+CPU reference (alpha 0.85, double): 37 iterations, 0.025 ms, 0.001 ms/iter
+  ||pr_1 - cpu||_1 = 4.60e-08, GPU setup (H->D + cuSPARSE descriptors) 2.7 ms
+  speedup per iteration: 0.00265x
+
+Done!
+
+===== Random graphs, average out-degree 8 =====
+----- nvgraph_examples/pagerank_cusparse -n=10000 -deg=8 -----
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+> Detected Compute SM 7.5 hardware with 16 multi-processors
+graph: 10000 vertices, 79716 edges, 578 dangling
+  host graph build: 3.4 ms
+tolerance 1.0e-06 (L1 change), max 500 iterations
+
+pr_1, alpha = 0.85  (17 iterations, 9.201 ms, 0.541 ms/iter, residual 5.69e-07)
+  SpMV share of solve time: 55% (0.298 ms per SpMV)
+top 5 vertices:  0 (0.03505)  590 (0.01498)  3483 (0.01495)  1 (0.00865)  2 (0.00563)
+pr_2, alpha = 0.90, initial guess = pr_1  (15 iterations, 4.053 ms, residual 4.76e-07)
+top 5 vertices:  0 (0.03684)  590 (0.01665)  3483 (0.01663)  1 (0.00910)  2 (0.00591)
+
+CPU reference (alpha 0.85, double): 17 iterations, 2.477 ms, 0.146 ms/iter
+  ||pr_1 - cpu||_1 = 6.90e-08, GPU setup (H->D + cuSPARSE descriptors) 2.5 ms
+  speedup per iteration: 0.269x
+
+Done!
+
+----- nvgraph_examples/pagerank_cusparse -n=100000 -deg=8 -----
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+> Detected Compute SM 7.5 hardware with 16 multi-processors
+graph: 100000 vertices, 801356 edges, 5895 dangling
+  host graph build: 38.5 ms
+tolerance 1.0e-06 (L1 change), max 500 iterations
+
+pr_1, alpha = 0.85  (17 iterations, 12.413 ms, 0.730 ms/iter, residual 4.71e-07)
+  SpMV share of solve time: 67% (0.488 ms per SpMV)
+top 5 vertices:  0 (0.01767)  5906 (0.00753)  34834 (0.00751)  1 (0.00421)  3 (0.00289)
+pr_2, alpha = 0.90, initial guess = pr_1  (15 iterations, 5.555 ms, residual 4.98e-07)
+top 5 vertices:  0 (0.01884)  5906 (0.00850)  34834 (0.00848)  1 (0.00446)  3 (0.00309)
+
+CPU reference (alpha 0.85, double): 17 iterations, 42.827 ms, 2.519 ms/iter
+  ||pr_1 - cpu||_1 = 9.27e-08, GPU setup (H->D + cuSPARSE descriptors) 5.5 ms
+  speedup per iteration: 3.45x
+
+Done!
+
+----- nvgraph_examples/pagerank_cusparse -n=1000000 -deg=8 -----
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+> Detected Compute SM 7.5 hardware with 16 multi-processors
+graph: 1000000 vertices, 8000489 edges, 58573 dangling
+  host graph build: 976.3 ms
+tolerance 1.0e-06 (L1 change), max 500 iterations
+
+pr_1, alpha = 0.85  (17 iterations, 104.714 ms, 6.160 ms/iter, residual 6.91e-07)
+  SpMV share of solve time: 92% (5.637 ms per SpMV)
+top 5 vertices:  0 (0.00786)  59065 (0.00334)  348349 (0.00334)  1 (0.00208)  2 (0.00140)
+pr_2, alpha = 0.90, initial guess = pr_1  (15 iterations, 88.872 ms, residual 7.01e-07)
+top 5 vertices:  0 (0.00833)  59065 (0.00375)  348349 (0.00375)  1 (0.00219)  2 (0.00148)
+
+CPU reference (alpha 0.85, double): 17 iterations, 887.861 ms, 52.227 ms/iter
+  ||pr_1 - cpu||_1 = 8.48e-08, GPU setup (H->D + cuSPARSE descriptors) 20.5 ms
+  speedup per iteration: 8.48x
+
+Done!
+
+----- nvgraph_examples/pagerank_cusparse -n=4000000 -deg=8 -----
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+> Detected Compute SM 7.5 hardware with 16 multi-processors
+graph: 4000000 vertices, 32000968 edges, 234306 dangling
+  host graph build: 5200.5 ms
+tolerance 1.0e-06 (L1 change), max 500 iterations
+
+pr_1, alpha = 0.85  (18 iterations, 565.003 ms, 31.389 ms/iter, residual 6.18e-07)
+  SpMV share of solve time: 96% (30.126 ms per SpMV)
+top 5 vertices:  0 (0.00513)  236260 (0.00218)  1393398 (0.00218)  756 (0.00188)  2312317 (0.00185)
+pr_2, alpha = 0.90, initial guess = pr_1  (16 iterations, 500.586 ms, residual 6.20e-07)
+top 5 vertices:  0 (0.00545)  236260 (0.00245)  1393398 (0.00245)  756 (0.00223)  2312317 (0.00221)
+
+CPU reference (alpha 0.85, double): 18 iterations, 6477.547 ms, 359.864 ms/iter
+  ||pr_1 - cpu||_1 = 7.85e-08, GPU setup (H->D + cuSPARSE descriptors) 66.5 ms
+  speedup per iteration: 11.5x
+
+Done!
+
+===== Edge density at 1M vertices =====
+----- nvgraph_examples/pagerank_cusparse -n=1000000 -deg=2 -----
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+> Detected Compute SM 7.5 hardware with 16 multi-processors
+graph: 1000000 vertices, 2001913 edges, 199468 dangling
+  host graph build: 231.5 ms
+tolerance 1.0e-06 (L1 change), max 500 iterations
+
+pr_1, alpha = 0.85  (23 iterations, 49.143 ms, 2.137 ms/iter, residual 8.71e-07)
+  SpMV share of solve time: 79% (1.680 ms per SpMV)
+top 5 vertices:  0 (0.00651)  1 (0.00194)  348349 (0.00165)  678998 (0.00140)  2 (0.00122)
+pr_2, alpha = 0.90, initial guess = pr_1  (21 iterations, 41.616 ms, residual 6.34e-07)
+top 5 vertices:  0 (0.00687)  1 (0.00206)  348349 (0.00186)  678998 (0.00167)  2 (0.00128)
+
+CPU reference (alpha 0.85, double): 23 iterations, 525.232 ms, 22.836 ms/iter
+  ||pr_1 - cpu||_1 = 4.69e-08, GPU setup (H->D + cuSPARSE descriptors) 10.0 ms
+  speedup per iteration: 10.7x
+
+Done!
+
+----- nvgraph_examples/pagerank_cusparse -n=1000000 -deg=32 -----
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+> Detected Compute SM 7.5 hardware with 16 multi-processors
+graph: 1000000 vertices, 31966507 edges, 15380 dangling
+  host graph build: 4069.5 ms
+tolerance 1.0e-06 (L1 change), max 500 iterations
+
+pr_1, alpha = 0.85  (12 iterations, 253.609 ms, 21.134 ms/iter, residual 4.46e-07)
+  SpMV share of solve time: 97% (20.556 ms per SpMV)
+top 5 vertices:  0 (0.00843)  1 (0.00219)  2 (0.00149)  3 (0.00119)  4 (0.00102)
+pr_2, alpha = 0.90, initial guess = pr_1  (10 iterations, 209.055 ms, residual 7.90e-07)
+top 5 vertices:  0 (0.00893)  1 (0.00232)  2 (0.00157)  3 (0.00126)  4 (0.00108)
+
+CPU reference (alpha 0.85, double): 12 iterations, 1977.961 ms, 164.830 ms/iter
+  ||pr_1 - cpu||_1 = 9.54e-08, GPU setup (H->D + cuSPARSE descriptors) 62.4 ms
+  speedup per iteration: 7.8x
+
+Done!
+
+===== High damping on a large graph =====
+----- nvgraph_examples/pagerank_cusparse -n=1000000 -deg=8 -alpha=0.99 -----
+GPU Device 0: "NVIDIA GeForce GTX 1650 Ti" with compute capability 7.5
+
+> Detected Compute SM 7.5 hardware with 16 multi-processors
+graph: 1000000 vertices, 8000489 edges, 58573 dangling
+  host graph build: 933.0 ms
+tolerance 1.0e-06 (L1 change), max 500 iterations
+
+pr_1, alpha = 0.99  (20 iterations, 121.786 ms, 6.089 ms/iter, residual 7.98e-07)
+  SpMV share of solve time: 91% (5.548 ms per SpMV)
+top 5 vertices:  0 (0.00918)  59065 (0.00454)  348349 (0.00454)  1 (0.00240)  2 (0.00162)
+pr_2, alpha = 0.99, initial guess = pr_1  (1 iterations, 7.607 ms, residual 3.63e-07)
+top 5 vertices:  0 (0.00918)  59065 (0.00454)  348349 (0.00454)  1 (0.00240)  2 (0.00162)
+
+CPU reference (alpha 0.99, double): 20 iterations, 987.513 ms, 49.376 ms/iter
+  ||pr_1 - cpu||_1 = 7.75e-08, GPU setup (H->D + cuSPARSE descriptors) 19.9 ms
+  speedup per iteration: 8.11x
+
+Done!
+

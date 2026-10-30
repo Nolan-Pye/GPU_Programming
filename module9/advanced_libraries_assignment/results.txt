@@ -1,0 +1,245 @@
+===== ./savings_sim  =====
+Return history: 98 years, 1928-2025 (data/annual_returns.csv)
+  Stocks (S&P 500)          average 11.85% a year, typical swing +/-19.4%,
+                            worst year -43.8% (1931)
+  Bonds (10-year Treasury)  average  4.82% a year, typical swing +/- 7.9%,
+                            worst year -17.8% (2022)
+
+Plan:  save $500 a month ($6,000 a year) for 30 years, starting from $0
+       you put in $180,000 in total; goal $1,000,000
+Model: normal  (each year drawn from a bell curve fitted to history)
+       1,000,000 simulated futures, seed 2026
+
+  Stocks/Bonds  Chance of goal   Bad case      Median   Good case     Average
+     100/0              58.3%    $449,844  $1,172,329  $3,129,252  $1,576,221
+      80/20             48.9%    $459,635    $984,096  $2,146,836  $1,187,627
+      60/40             31.9%    $450,083    $805,433  $1,460,443    $899,127
+      40/60             10.1%    $418,071    $644,031  $1,001,713    $684,634
+      20/80              0.7%    $356,965    $504,721    $717,738    $524,849
+       0/100             0.1%    $271,258    $388,378    $560,861    $405,510
+  Bad case: 1 future in 10 ends lower.  Good case: 1 in 10 ends higher.
+
+Checks
+  [PASS] random stock returns average 11.854% (history 11.855%, 0.3 standard errors apart)
+  [PASS] random bond returns average 4.824% (history 4.822%, 1.2 standard errors apart)
+  [PASS] GPU matches CPU on the same returns for all 6 mixes (largest difference 0.00002%)
+  [PASS] average balance matches the exact formula for all 6 mixes (largest gap 1.5 standard errors;
+         100% stocks: simulated $1,576,221, formula $1,574,704)
+
+Timing (1,000,000 futures x 30 years, 6 mixes)
+  GPU  random returns (cuRAND)       12.6 ms
+  GPU  all mixes (Thrust)            27.4 ms
+  CPU  all mixes                   1190.8 ms  (GPU is 43x faster)
+
+All checks PASSED
+
+===== ./savings_sim model=history =====
+Return history: 98 years, 1928-2025 (data/annual_returns.csv)
+  Stocks (S&P 500)          average 11.85% a year, typical swing +/-19.4%,
+                            worst year -43.8% (1931)
+  Bonds (10-year Treasury)  average  4.82% a year, typical swing +/- 7.9%,
+                            worst year -17.8% (2022)
+
+Plan:  save $500 a month ($6,000 a year) for 30 years, starting from $0
+       you put in $180,000 in total; goal $1,000,000
+Model: history (each year is a randomly chosen real year)
+       1,000,000 simulated futures, seed 2026
+
+  Stocks/Bonds  Chance of goal   Bad case      Median   Good case     Average
+     100/0              58.0%    $428,715  $1,173,532  $3,164,881  $1,575,734
+      80/20             49.2%    $445,261    $987,828  $2,164,888  $1,187,334
+      60/40             32.5%    $441,829    $808,556  $1,466,311    $898,908
+      40/60             10.1%    $414,942    $645,651  $1,002,394    $684,433
+      20/80              0.8%    $358,796    $503,395    $716,036    $524,647
+       0/100             0.1%    $275,458    $386,403    $558,322    $405,311
+  Bad case: 1 future in 10 ends lower.  Good case: 1 in 10 ends higher.
+
+Checks
+  [PASS] random stock returns average 11.856% (history 11.855%, 0.5 standard errors apart)
+  [PASS] random bond returns average 4.821% (history 4.822%, 0.7 standard errors apart)
+  [PASS] GPU matches CPU on the same returns for all 6 mixes (largest difference 0.00010%)
+  [PASS] average balance matches the exact formula for all 6 mixes (largest gap 0.7 standard errors;
+         100% stocks: simulated $1,575,734, formula $1,574,704)
+
+Timing (1,000,000 futures x 30 years, 6 mixes)
+  GPU  random returns (cuRAND)       15.6 ms
+  GPU  all mixes (Thrust)            26.6 ms
+  CPU  all mixes                   1019.9 ms  (GPU is 38x faster)
+
+All checks PASSED
+
+===== ./savings_sim monthly=250 years=40 =====
+Return history: 98 years, 1928-2025 (data/annual_returns.csv)
+  Stocks (S&P 500)          average 11.85% a year, typical swing +/-19.4%,
+                            worst year -43.8% (1931)
+  Bonds (10-year Treasury)  average  4.82% a year, typical swing +/- 7.9%,
+                            worst year -17.8% (2022)
+
+Plan:  save $250 a month ($3,000 a year) for 40 years, starting from $0
+       you put in $120,000 in total; goal $1,000,000
+Model: normal  (each year drawn from a bell curve fitted to history)
+       1,000,000 simulated futures, seed 2026
+
+  Stocks/Bonds  Chance of goal   Bad case      Median   Good case     Average
+     100/0              69.8%    $501,780  $1,606,075  $5,284,706  $2,475,524
+      80/20             62.5%    $499,805  $1,259,728  $3,246,459  $1,658,543
+      60/40             46.5%    $470,490    $952,988  $1,958,536  $1,118,377
+      40/60             19.1%    $412,536    $695,972  $1,186,643    $760,511
+      20/80              1.7%    $325,404    $493,768    $755,392    $522,688
+       0/100             0.1%    $222,820    $342,222    $532,144    $363,954
+  Bad case: 1 future in 10 ends lower.  Good case: 1 in 10 ends higher.
+
+Checks
+  [PASS] random stock returns average 11.854% (history 11.855%, 0.1 standard errors apart)
+  [PASS] random bond returns average 4.824% (history 4.822%, 1.1 standard errors apart)
+  [PASS] GPU matches CPU on the same returns for all 6 mixes (largest difference 0.00004%)
+  [PASS] average balance matches the exact formula for all 6 mixes (largest gap 1.2 standard errors;
+         100% stocks: simulated $2,475,524, formula $2,472,321)
+
+Timing (1,000,000 futures x 40 years, 6 mixes)
+  GPU  random returns (cuRAND)       13.6 ms
+  GPU  all mixes (Thrust)            27.5 ms
+  CPU  all mixes                   1255.3 ms  (GPU is 46x faster)
+
+All checks PASSED
+
+===== ./savings_sim monthly=1000 years=20 =====
+Return history: 98 years, 1928-2025 (data/annual_returns.csv)
+  Stocks (S&P 500)          average 11.85% a year, typical swing +/-19.4%,
+                            worst year -43.8% (1931)
+  Bonds (10-year Treasury)  average  4.82% a year, typical swing +/- 7.9%,
+                            worst year -17.8% (2022)
+
+Plan:  save $1,000 a month ($12,000 a year) for 20 years, starting from $0
+       you put in $240,000 in total; goal $1,000,000
+Model: normal  (each year drawn from a bell curve fitted to history)
+       1,000,000 simulated futures, seed 2026
+
+  Stocks/Bonds  Chance of goal   Bad case      Median   Good case     Average
+     100/0              35.2%    $382,457    $800,736  $1,692,232    $950,568
+      80/20             23.6%    $397,436    $715,843  $1,299,647    $798,633
+      60/40              9.8%    $401,760    $630,449    $995,168    $672,490
+      40/60              1.2%    $391,277    $547,568    $769,851    $567,725
+      20/80              0.0%    $357,994    $469,362    $617,815    $480,668
+       0/100             0.0%    $299,049    $397,761    $530,885    $408,271
+  Bad case: 1 future in 10 ends lower.  Good case: 1 in 10 ends higher.
+
+Checks
+  [PASS] random stock returns average 11.852% (history 11.855%, 0.6 standard errors apart)
+  [PASS] random bond returns average 4.823% (history 4.822%, 0.5 standard errors apart)
+  [PASS] GPU matches CPU on the same returns for all 6 mixes (largest difference 0.00002%)
+  [PASS] average balance matches the exact formula for all 6 mixes (largest gap 0.7 standard errors;
+         100% stocks: simulated $950,568, formula $950,985)
+
+Timing (1,000,000 futures x 20 years, 6 mixes)
+  GPU  random returns (cuRAND)        8.0 ms
+  GPU  all mixes (Thrust)            21.7 ms
+  CPU  all mixes                    848.1 ms  (GPU is 39x faster)
+
+All checks PASSED
+
+===== ./savings_sim futures=10000 =====
+Return history: 98 years, 1928-2025 (data/annual_returns.csv)
+  Stocks (S&P 500)          average 11.85% a year, typical swing +/-19.4%,
+                            worst year -43.8% (1931)
+  Bonds (10-year Treasury)  average  4.82% a year, typical swing +/- 7.9%,
+                            worst year -17.8% (2022)
+
+Plan:  save $500 a month ($6,000 a year) for 30 years, starting from $0
+       you put in $180,000 in total; goal $1,000,000
+Model: normal  (each year drawn from a bell curve fitted to history)
+       10,000 simulated futures, seed 2026
+
+  Stocks/Bonds  Chance of goal   Bad case      Median   Good case     Average
+     100/0              57.8%    $442,589  $1,180,978  $3,129,941  $1,583,014
+      80/20             48.9%    $450,500    $981,502  $2,134,435  $1,188,796
+      60/40             31.9%    $444,950    $805,647  $1,465,159    $897,551
+      40/60              9.8%    $415,499    $641,839    $996,706    $681,976
+      20/80              0.7%    $355,806    $500,728    $711,645    $522,003
+       0/100             0.0%    $270,689    $386,145    $553,451    $402,894
+  Bad case: 1 future in 10 ends lower.  Good case: 1 in 10 ends higher.
+
+Checks
+  [PASS] random stock returns average 11.847% (history 11.855%, 0.2 standard errors apart)
+  [PASS] random bond returns average 4.798% (history 4.822%, 1.7 standard errors apart)
+  [PASS] GPU matches CPU on the same returns for all 6 mixes (largest difference 0.00002%)
+  [PASS] average balance matches the exact formula for all 6 mixes (largest gap 2.1 standard errors;
+         100% stocks: simulated $1,583,014, formula $1,574,704)
+
+Timing (10,000 futures x 30 years, 6 mixes)
+  GPU  random returns (cuRAND)        1.6 ms
+  GPU  all mixes (Thrust)             2.3 ms
+  CPU  all mixes                      7.2 ms  (GPU is 3x faster)
+
+All checks PASSED
+
+===== ./savings_sim futures=100000 =====
+Return history: 98 years, 1928-2025 (data/annual_returns.csv)
+  Stocks (S&P 500)          average 11.85% a year, typical swing +/-19.4%,
+                            worst year -43.8% (1931)
+  Bonds (10-year Treasury)  average  4.82% a year, typical swing +/- 7.9%,
+                            worst year -17.8% (2022)
+
+Plan:  save $500 a month ($6,000 a year) for 30 years, starting from $0
+       you put in $180,000 in total; goal $1,000,000
+Model: normal  (each year drawn from a bell curve fitted to history)
+       100,000 simulated futures, seed 2026
+
+  Stocks/Bonds  Chance of goal   Bad case      Median   Good case     Average
+     100/0              58.3%    $448,451  $1,172,438  $3,125,624  $1,575,805
+      80/20             48.9%    $458,966    $984,910  $2,145,709  $1,186,619
+      60/40             31.8%    $450,342    $805,428  $1,456,998    $898,143
+      40/60              9.9%    $418,642    $643,747    $997,839    $683,908
+      20/80              0.6%    $357,316    $504,214    $717,050    $524,434
+       0/100             0.1%    $271,601    $388,390    $561,473    $405,385
+  Bad case: 1 future in 10 ends lower.  Good case: 1 in 10 ends higher.
+
+Checks
+  [PASS] random stock returns average 11.846% (history 11.855%, 0.8 standard errors apart)
+  [PASS] random bond returns average 4.824% (history 4.822%, 0.4 standard errors apart)
+  [PASS] GPU matches CPU on the same returns for all 6 mixes (largest difference 0.00003%)
+  [PASS] average balance matches the exact formula for all 6 mixes (largest gap 0.7 standard errors;
+         100% stocks: simulated $1,575,805, formula $1,574,704)
+
+Timing (100,000 futures x 30 years, 6 mixes)
+  GPU  random returns (cuRAND)        2.4 ms
+  GPU  all mixes (Thrust)             3.3 ms
+  CPU  all mixes                     95.9 ms  (GPU is 29x faster)
+
+All checks PASSED
+
+===== ./savings_sim futures=2000000 =====
+Return history: 98 years, 1928-2025 (data/annual_returns.csv)
+  Stocks (S&P 500)          average 11.85% a year, typical swing +/-19.4%,
+                            worst year -43.8% (1931)
+  Bonds (10-year Treasury)  average  4.82% a year, typical swing +/- 7.9%,
+                            worst year -17.8% (2022)
+
+Plan:  save $500 a month ($6,000 a year) for 30 years, starting from $0
+       you put in $180,000 in total; goal $1,000,000
+Model: normal  (each year drawn from a bell curve fitted to history)
+       2,000,000 simulated futures, seed 2026
+
+  Stocks/Bonds  Chance of goal   Bad case      Median   Good case     Average
+     100/0              58.4%    $450,191  $1,173,955  $3,127,739  $1,575,874
+      80/20             49.0%    $460,238    $984,911  $2,146,527  $1,187,517
+      60/40             32.0%    $450,637    $805,804  $1,458,749    $899,030
+      40/60             10.0%    $418,273    $644,092  $1,000,446    $684,473
+      20/80              0.7%    $356,972    $504,484    $717,631    $524,618
+       0/100             0.1%    $271,136    $388,204    $560,678    $405,234
+  Bad case: 1 future in 10 ends lower.  Good case: 1 in 10 ends higher.
+
+Checks
+  [PASS] random stock returns average 11.856% (history 11.855%, 0.6 standard errors apart)
+  [PASS] random bond returns average 4.822% (history 4.822%, 0.7 standard errors apart)
+  [PASS] GPU matches CPU on the same returns for all 6 mixes (largest difference 0.00003%)
+  [PASS] average balance matches the exact formula for all 6 mixes (largest gap 1.2 standard errors;
+         100% stocks: simulated $1,575,874, formula $1,574,704)
+
+Timing (2,000,000 futures x 30 years, 6 mixes)
+  GPU  random returns (cuRAND)       23.0 ms
+  GPU  all mixes (Thrust)            42.9 ms
+  CPU  all mixes                   2264.8 ms  (GPU is 53x faster)
+
+All checks PASSED
+

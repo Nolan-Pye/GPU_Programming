@@ -1,13 +1,13 @@
-folder: module6/streams_assignment
+folder: module9/advanced_libraries_assignment
 
 build:
-  - []                # ./build.sh (no arguments)
+  - []                          # ./build.sh (no arguments)
 
 run:
-  - [16, 16, 32]      # base configuration (16x16 blocks, 32 photos)
-  - [8, 8, 32]        # additional block size #1 (64 threads)
-  - [32, 32, 32]      # additional block size #2 (1024 threads)
-  - [32, 8, 32]       # additional block shape #1 (wide)
-  - [128, 1, 32]      # additional block shape #2 (one row)
-  - [16, 16, 8]       # additional batch size #1 (8 photos)
-  - [16, 16, 64]      # additional batch size #2 (64 photos)
+  - []                          # $500/month, 30 years, goal $1M
+  - [model=history]             # same plan, random real years
+  - [monthly=250, years=40]     # early starter: less money, more time
+  - [monthly=1000, years=20]    # late starter: more money, less time
+  - [futures=10000]             # GPU vs CPU speed: small run
+  - [futures=100000]            # GPU vs CPU speed: medium run
+  - [futures=2000000]           # GPU vs CPU speed: large run

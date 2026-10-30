@@ -1,0 +1,7 @@
+boxFilterNPP/boxFilterNPP
+thrust_examples/thrust_example
+nvgraph_examples/pagerank_cusparse
+*.exe
+*.exp
+*.lib
+boxFilterNPP/out/*.pgm

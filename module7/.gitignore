@@ -1,0 +1,7 @@
+cufft_example
+cublas_example
+cusparse_example
+cusolver_example
+curand_example
+*.exp
+*.lib

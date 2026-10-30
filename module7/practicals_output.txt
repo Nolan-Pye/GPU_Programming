@@ -1,0 +1,879 @@
+cufft_example.cu
+tmpxft_000054e0_00000000-11_cufft_example.cudafe1.cpp
+cublas_example.cu
+tmpxft_00006748_00000000-11_cublas_example.cudafe1.cpp
+cusparse_example.cu
+tmpxft_0000044c_00000000-11_cusparse_example.cudafe1.cpp
+cusolver_example.cu
+tmpxft_000062e4_00000000-11_cusolver_example.cudafe1.cpp
+curand_example.cu
+tmpxft_000026d0_00000000-11_curand_example.cudafe1.cpp
+################ cuFFT: 2D convolution via FFT ################
+===== Initial state (5x5 all-ones signal and filter) =====
+----- cufft_example -----
+Config: 5 x 5 grid, all-ones input, fixed multiply kernel
+
+1 1 1 1 1 
+1 1 1 1 1 
+1 1 1 1 1 
+1 1 1 1 1 
+1 1 1 1 1 
+----------------
+1 1 1 1 1 
+1 1 1 1 1 
+1 1 1 1 1 
+1 1 1 1 1 
+1 1 1 1 1 
+----------------
+Transforming signal cufftExecC2C
+Launching Complex multiplication<<< >>>
+Transforming signal back cufftExecC2C
+25 25 25 25 25 
+25 25 25 25 25 
+25 25 25 25 25 
+25 25 25 25 25 
+25 25 25 25 25 
+
+Timings (N=5, 25 complex points, 0.0 MB per array):
+  plan creation        :     7.001 ms (host clock, cuFFT work area 0.0 MB)
+  2 forward FFTs       :     0.090 ms
+  pointwise multiply   :     0.214 ms
+  inverse FFT          :     0.031 ms
+Check vs direct convolution (25 points): max rel error = 0.000e+00 -> PASS
+
+===== Original multiply kernel, exactly as written (no 1/(N*N) scaling) =====
+----- cufft_example 5 ones orig -----
+Config: 5 x 5 grid, all-ones input, original multiply kernel
+
+1 1 1 1 1 
+1 1 1 1 1 
+1 1 1 1 1 
+1 1 1 1 1 
+1 1 1 1 1 
+----------------
+1 1 1 1 1 
+1 1 1 1 1 
+1 1 1 1 1 
+1 1 1 1 1 
+1 1 1 1 1 
+----------------
+Transforming signal cufftExecC2C
+Launching Complex multiplication<<< >>>
+Transforming signal back cufftExecC2C
+625 625 625 625 625 
+625 625 625 625 625 
+625 625 625 625 625 
+625 625 625 625 625 
+625 625 625 625 625 
+
+Timings (N=5, 25 complex points, 0.0 MB per array):
+  plan creation        :     7.401 ms (host clock, cuFFT work area 0.0 MB)
+  2 forward FFTs       :     0.107 ms
+  pointwise multiply   :     0.228 ms
+  inverse FFT          :     0.030 ms
+Check vs direct convolution (25 points): max rel error = 0.000e+00 -> PASS
+  (orig path: raw output is 25 x the convolution because the inverse FFT is unnormalized)
+
+===== Original kernel on non-trivial (random) input: the multiply bug shows up =====
+----- cufft_example 8 random orig -----
+Config: 8 x 8 grid, random input, original multiply kernel
+
+0.124149 0.00650044 0.389447 0.267281 0.703635 0.235511 0.46614 0.747948 
+0.123783 0.406018 0.608692 0.516312 0.755974 0.121555 0.354564 0.415693 
+0.203497 0.671987 0.0339366 0.356304 0.533128 0.965117 0.0996124 0.95117 
+0.492172 0.499588 0.333415 0.521104 0.618702 0.659963 0.0863063 0.000122074 
+0.650136 0.115024 0.207556 0.772546 0.137364 0.601489 0.81988 0.972686 
+0.66982 0.872951 0.596271 0.279244 0.618275 0.0968047 0.695303 0.734581 
+0.801599 0.479232 0.010773 0.620716 0.983306 0.400006 0.891964 0.923643 
+0.604602 0.838618 0.990875 0.416059 0.660176 0.372173 0.392895 0.891232 
+----------------
+0.122379 0.527299 0.686697 0.577929 0.821039 0.766564 0.129673 0.268593 
+0.183874 0.890774 0.565966 0.191534 0.745476 0.138829 0.251717 0.158361 
+0.829005 0.766137 0.245888 0.0184332 0.308939 0.382244 0.520859 0.950804 
+0.859523 0.830195 0.450362 0.625507 0.595996 0.887631 0.830836 0.765313 
+0.514817 0.571703 0.0916776 0.138829 0.6386 0.328684 0.851924 0.516831 
+0.272713 0.88937 0.477981 0.622547 0.279305 0.0721152 0.800439 0.607318 
+0.775201 0.314188 0.644856 0.0828883 0.159734 0.212806 0.333262 0.24192 
+0.879238 0.857387 0.812769 0.0969878 0.833674 0.233894 0.567278 0.370678 
+----------------
+Transforming signal cufftExecC2C
+Launching Complex multiplication<<< >>>
+Transforming signal back cufftExecC2C
+1005.69 1066.36 961.939 1056.02 1053.8 1096.18 1042.67 992.822 
+1207.21 1148.34 971.624 993.886 981.215 1137.81 1189.26 1113.91 
+1176.44 1070.3 1071.53 1027.4 1037.54 1031.02 1078.2 1020.99 
+1125.72 1103.74 938.163 926.373 954.012 986.227 1079.37 1081.54 
+1077.48 1080.71 1076.36 1047.28 1027.52 1015.25 982.42 900.989 
+991.389 1017.83 999.611 1049.95 1042.44 1091.62 1023.23 921.854 
+948.501 1045.04 1003.63 1145.42 1041.91 1085.62 964.95 928.531 
+1002.45 979.889 909.443 1006.47 1053.98 1081.79 1055.55 973.39 
+
+Timings (N=8, 64 complex points, 0.0 MB per array):
+  plan creation        :     8.012 ms (host clock, cuFFT work area 0.0 MB)
+  2 forward FFTs       :     0.102 ms
+  pointwise multiply   :     0.231 ms
+  inverse FFT          :     0.062 ms
+Check vs direct convolution (64 points): max rel error = 1.026e-01 -> FAIL
+  (orig path: raw output is 64 x the convolution because the inverse FFT is unnormalized)
+
+===== Fixed kernel on random input, growing N =====
+----- cufft_example 8 random -----
+Config: 8 x 8 grid, random input, fixed multiply kernel
+
+0.124149 0.00650044 0.389447 0.267281 0.703635 0.235511 0.46614 0.747948 
+0.123783 0.406018 0.608692 0.516312 0.755974 0.121555 0.354564 0.415693 
+0.203497 0.671987 0.0339366 0.356304 0.533128 0.965117 0.0996124 0.95117 
+0.492172 0.499588 0.333415 0.521104 0.618702 0.659963 0.0863063 0.000122074 
+0.650136 0.115024 0.207556 0.772546 0.137364 0.601489 0.81988 0.972686 
+0.66982 0.872951 0.596271 0.279244 0.618275 0.0968047 0.695303 0.734581 
+0.801599 0.479232 0.010773 0.620716 0.983306 0.400006 0.891964 0.923643 
+0.604602 0.838618 0.990875 0.416059 0.660176 0.372173 0.392895 0.891232 
+----------------
+0.122379 0.527299 0.686697 0.577929 0.821039 0.766564 0.129673 0.268593 
+0.183874 0.890774 0.565966 0.191534 0.745476 0.138829 0.251717 0.158361 
+0.829005 0.766137 0.245888 0.0184332 0.308939 0.382244 0.520859 0.950804 
+0.859523 0.830195 0.450362 0.625507 0.595996 0.887631 0.830836 0.765313 
+0.514817 0.571703 0.0916776 0.138829 0.6386 0.328684 0.851924 0.516831 
+0.272713 0.88937 0.477981 0.622547 0.279305 0.0721152 0.800439 0.607318 
+0.775201 0.314188 0.644856 0.0828883 0.159734 0.212806 0.333262 0.24192 
+0.879238 0.857387 0.812769 0.0969878 0.833674 0.233894 0.567278 0.370678 
+----------------
+Transforming signal cufftExecC2C
+Launching Complex multiplication<<< >>>
+Transforming signal back cufftExecC2C
+15.7139 15.6174 14.8207 16.9954 16.4656 16.6327 16.5014 16.5573 
+17.3209 17.1863 15.1513 16.2755 15.6517 17.5064 17.0396 17.0962 
+16.5849 15.6996 16.2503 16.061 16.482 17.4103 16.094 16.4382 
+16.4275 16.1727 15.6503 15.3429 14.7993 15.9935 15.8914 16.5891 
+16.8357 15.6582 16.3909 16.0102 16.055 16.2168 15.7776 15.3059 
+16.6524 16.2136 16.5927 15.8217 16.3952 16.1882 14.9965 15.4772 
+16.6172 15.8434 16.4347 16.5966 16.0095 16.9551 15.5698 15.5322 
+17.2049 15.6194 15.7525 15.9978 16.1482 16.1569 16.5233 15.9658 
+
+Timings (N=8, 64 complex points, 0.0 MB per array):
+  plan creation        :     8.439 ms (host clock, cuFFT work area 0.0 MB)
+  2 forward FFTs       :     0.159 ms
+  pointwise multiply   :     0.306 ms
+  inverse FFT          :     0.050 ms
+Check vs direct convolution (64 points): max rel error = 2.877e-07 -> PASS
+
+----- cufft_example 64 random -----
+Config: 64 x 64 grid, random input, fixed multiply kernel
+
+Transforming signal cufftExecC2C
+Launching Complex multiplication<<< >>>
+Transforming signal back cufftExecC2C
+
+Timings (N=64, 4096 complex points, 0.0 MB per array):
+  plan creation        :   119.353 ms (host clock, cuFFT work area 0.0 MB)
+  2 forward FFTs       :     0.151 ms
+  pointwise multiply   :     0.222 ms
+  inverse FFT          :     0.046 ms
+Check vs direct convolution (4096 points): max rel error = 2.554e-07 -> PASS
+
+----- cufft_example 256 random -----
+Config: 256 x 256 grid, random input, fixed multiply kernel
+
+Transforming signal cufftExecC2C
+Launching Complex multiplication<<< >>>
+Transforming signal back cufftExecC2C
+
+Timings (N=256, 65536 complex points, 0.5 MB per array):
+  plan creation        :   148.323 ms (host clock, cuFFT work area 0.0 MB)
+  2 forward FFTs       :     0.129 ms
+  pointwise multiply   :     0.307 ms
+  inverse FFT          :     0.037 ms
+Check vs direct convolution (1024 points): max rel error = 5.182e-07 -> PASS
+
+----- cufft_example 1024 random -----
+Config: 1024 x 1024 grid, random input, fixed multiply kernel
+
+Transforming signal cufftExecC2C
+Launching Complex multiplication<<< >>>
+Transforming signal back cufftExecC2C
+
+Timings (N=1024, 1048576 complex points, 8.0 MB per array):
+  plan creation        :   241.217 ms (host clock, cuFFT work area 0.0 MB)
+  2 forward FFTs       :     0.598 ms
+  pointwise multiply   :     0.229 ms
+  inverse FFT          :     0.285 ms
+Check vs direct convolution (64 points): max rel error = 2.519e-07 -> PASS
+
+----- cufft_example 4096 random -----
+Config: 4096 x 4096 grid, random input, fixed multiply kernel
+
+Transforming signal cufftExecC2C
+Launching Complex multiplication<<< >>>
+Transforming signal back cufftExecC2C
+
+Timings (N=4096, 16777216 complex points, 128.0 MB per array):
+  plan creation        :   106.661 ms (host clock, cuFFT work area 128.0 MB)
+  2 forward FFTs       :    11.431 ms
+  pointwise multiply   :     2.940 ms
+  inverse FFT          :     5.710 ms
+Check vs direct convolution (16 points): max rel error = 1.450e-07 -> PASS
+
+===== Non-power-of-two sizes (1000 = 2^3*5^3, 1009 is prime) =====
+----- cufft_example 1000 random -----
+Config: 1000 x 1000 grid, random input, fixed multiply kernel
+
+Transforming signal cufftExecC2C
+Launching Complex multiplication<<< >>>
+Transforming signal back cufftExecC2C
+
+Timings (N=1000, 1000000 complex points, 7.6 MB per array):
+  plan creation        :   155.980 ms (host clock, cuFFT work area 0.0 MB)
+  2 forward FFTs       :     0.749 ms
+  pointwise multiply   :     0.228 ms
+  inverse FFT          :     0.358 ms
+Check vs direct convolution (67 points): max rel error = 2.036e-07 -> PASS
+
+----- cufft_example 1009 random -----
+Config: 1009 x 1009 grid, random input, fixed multiply kernel
+
+Transforming signal cufftExecC2C
+Launching Complex multiplication<<< >>>
+Transforming signal back cufftExecC2C
+
+Timings (N=1009, 1018081 complex points, 7.8 MB per array):
+  plan creation        :   529.155 ms (host clock, cuFFT work area 0.0 MB)
+  2 forward FFTs       :     1.939 ms
+  pointwise multiply   :     0.234 ms
+  inverse FFT          :     0.989 ms
+Check vs direct convolution (65 points): max rel error = 1.006e-06 -> PASS
+
+################ cuBLAS: SGEMM C = A*B ################
+===== Initial state (A 2x9, B 9x2) =====
+----- cublas_example -noprompt -----
+Config: A is 2x9, B is 9x2, C is 2x2
+
+Matriz A:
+
+0.000000 2.000000 4.000000 6.000000 8.000000 10.000000 12.000000 14.000000 16.000000 
+1.000000 3.000000 5.000000 7.000000 9.000000 11.000000 13.000000 15.000000 17.000000 
+Matriz B:
+
+0.000000 9.000000 
+1.000000 10.000000 
+2.000000 11.000000 
+3.000000 12.000000 
+4.000000 13.000000 
+5.000000 14.000000 
+6.000000 15.000000 
+7.000000 16.000000 
+8.000000 17.000000 
+Matriz C:
+
+408.000000 1056.000000 
+444.000000 1173.000000 
+
+Timings:
+  cublasSetMatrix A,B (H2D)   :     0.150 ms
+  first cublasSgemm           :    12.567 ms
+  steady-state cublasSgemm    :     0.038 ms  (0.00 GFLOP/s, avg of 10)
+  cublasGetMatrix C (D2H)     :     0.182 ms
+  CPU reference, all of C     :     0.001 ms  (0.14 GFLOP/s, naive loop in double)
+Check vs CPU (all of C, 4 elements): max rel error = 0.000e+00 -> PASS
+
+===== Small square (printed) =====
+----- cublas_example 4 4 4 -----
+Config: A is 4x4, B is 4x4, C is 4x4
+
+Matriz A:
+
+0.000000 4.000000 8.000000 12.000000 
+1.000000 5.000000 9.000000 13.000000 
+2.000000 6.000000 10.000000 14.000000 
+3.000000 7.000000 11.000000 15.000000 
+Matriz B:
+
+0.000000 4.000000 8.000000 12.000000 
+1.000000 5.000000 9.000000 13.000000 
+2.000000 6.000000 10.000000 14.000000 
+3.000000 7.000000 11.000000 15.000000 
+Matriz C:
+
+56.000000 152.000000 248.000000 344.000000 
+62.000000 174.000000 286.000000 398.000000 
+68.000000 196.000000 324.000000 452.000000 
+74.000000 218.000000 362.000000 506.000000 
+
+Timings:
+  cublasSetMatrix A,B (H2D)   :     0.239 ms
+  first cublasSgemm           :     8.442 ms
+  steady-state cublasSgemm    :     0.078 ms  (0.00 GFLOP/s, avg of 10)
+  cublasGetMatrix C (D2H)     :     0.210 ms
+  CPU reference, all of C     :     0.001 ms  (0.18 GFLOP/s, naive loop in double)
+Check vs CPU (all of C, 16 elements): max rel error = 0.000e+00 -> PASS
+
+===== Square matrices, growing size =====
+----- cublas_example 128 128 128 -----
+Config: A is 128x128, B is 128x128, C is 128x128
+
+Timings:
+  cublasSetMatrix A,B (H2D)   :     0.073 ms
+  first cublasSgemm           :    58.107 ms
+  steady-state cublasSgemm    :     0.068 ms  (61.29 GFLOP/s, avg of 10)
+  cublasGetMatrix C (D2H)     :     0.211 ms
+  CPU reference, all of C     :     5.809 ms  (0.72 GFLOP/s, naive loop in double)
+Check vs CPU (all of C, 16384 elements): max rel error = 6.145e-07 -> PASS
+
+----- cublas_example 512 512 512 -----
+Config: A is 512x512, B is 512x512, C is 512x512
+
+Timings:
+  cublasSetMatrix A,B (H2D)   :     0.660 ms
+  first cublasSgemm           :    10.077 ms
+  steady-state cublasSgemm    :     0.180 ms  (1489.38 GFLOP/s, avg of 10)
+  cublasGetMatrix C (D2H)     :     0.767 ms
+  CPU reference, all of C     :   455.251 ms  (0.59 GFLOP/s, naive loop in double)
+Check vs CPU (all of C, 262144 elements): max rel error = 2.270e-06 -> PASS
+
+----- cublas_example 1024 1024 1024 -----
+Config: A is 1024x1024, B is 1024x1024, C is 1024x1024
+
+Timings:
+  cublasSetMatrix A,B (H2D)   :     1.843 ms
+  first cublasSgemm           :     9.093 ms
+  steady-state cublasSgemm    :     1.378 ms  (1558.59 GFLOP/s, avg of 10)
+  cublasGetMatrix C (D2H)     :     1.581 ms
+  CPU reference, all of C     :  2649.587 ms  (0.81 GFLOP/s, naive loop in double)
+Check vs CPU (all of C, 1048576 elements): max rel error = 3.993e-06 -> PASS
+
+----- cublas_example 2048 2048 2048 -----
+Config: A is 2048x2048, B is 2048x2048, C is 2048x2048
+
+Timings:
+  cublasSetMatrix A,B (H2D)   :     5.766 ms
+  first cublasSgemm           :    17.322 ms
+  steady-state cublasSgemm    :    12.227 ms  (1405.13 GFLOP/s, avg of 10)
+  cublasGetMatrix C (D2H)     :    12.250 ms
+Check vs CPU (random sample, 1024 elements): max rel error = 8.502e-06 -> PASS
+
+----- cublas_example 4096 4096 4096 -----
+Config: A is 4096x4096, B is 4096x4096, C is 4096x4096
+
+Timings:
+  cublasSetMatrix A,B (H2D)   :    23.350 ms
+  first cublasSgemm           :    98.375 ms
+  steady-state cublasSgemm    :   101.681 ms  (1351.66 GFLOP/s, avg of 10)
+  cublasGetMatrix C (D2H)     :    20.060 ms
+Check vs CPU (random sample, 1024 elements): max rel error = 1.549e-05 -> PASS
+
+===== Skinny shapes (same 2*M*N*K flops budget, different arithmetic intensity) =====
+----- cublas_example 4096 16 4096 -----
+Config: A is 4096x16, B is 16x4096, C is 4096x4096
+
+Timings:
+  cublasSetMatrix A,B (H2D)   :     0.218 ms
+  first cublasSgemm           :     9.640 ms
+  steady-state cublasSgemm    :     0.714 ms  (752.23 GFLOP/s, avg of 10)
+  cublasGetMatrix C (D2H)     :    20.414 ms
+  CPU reference, all of C     :   779.270 ms  (0.69 GFLOP/s, naive loop in double)
+Check vs CPU (all of C, 16777216 elements): max rel error = 1.943e-07 -> PASS
+
+----- cublas_example 16 65536 16 -----
+Config: A is 16x65536, B is 65536x16, C is 16x16
+
+Timings:
+  cublasSetMatrix A,B (H2D)   :     1.959 ms
+  first cublasSgemm           :     9.188 ms
+  steady-state cublasSgemm    :     1.130 ms  (29.70 GFLOP/s, avg of 10)
+  cublasGetMatrix C (D2H)     :     0.174 ms
+  CPU reference, all of C     :    31.136 ms  (1.08 GFLOP/s, naive loop in double)
+Check vs CPU (all of C, 256 elements): max rel error = 8.346e-07 -> PASS
+
+################ cuSPARSE + cuBLAS: conjugate gradient ################
+===== Initial state (N = 1048576, diag in [10,11)) =====
+----- cusparse_example -----
+conjugateGradient: GPU Device 0: "NVIDIA GeForce GTX 1650 Ti"
+> GPU device has 16 Multi-Processors, SM 7.5 compute capabilities
+
+Matrix: 1048576 x 1048576, nnz = 3145726, diag in [10, 11), tol = 1e-05, max_iter = 10000
+Storage: CSR 28.00 MB vs dense 4194304.00 MB (149797x smaller)
+
+iteration =   1, residual = 4.451374e+01
+iteration =   2, residual = 3.248657e+00
+iteration =   3, residual = 2.695777e-01
+iteration =   4, residual = 2.314586e-02
+iteration =   5, residual = 1.997625e-03
+iteration =   6, residual = 1.852079e-04
+iteration =   7, residual = 1.705766e-05
+iteration =   8, residual = 1.618582e-06
+
+CG converged after 8 iterations, final residual = 1.618582e-06
+Timings:
+  CG solve (incl. initial residual) :    40.870 ms  (5.109 ms/iteration)
+  one cusparseSpMV                  :     0.382 ms  (~98.7 GB/s effective)
+Test Summary:  Error amount = 0.000000
+
+===== Matrix size =====
+----- cusparse_example 1024 -----
+conjugateGradient: GPU Device 0: "NVIDIA GeForce GTX 1650 Ti"
+> GPU device has 16 Multi-Processors, SM 7.5 compute capabilities
+
+Matrix: 1024 x 1024, nnz = 3070, diag in [10, 11), tol = 1e-05, max_iter = 10000
+Storage: CSR 0.03 MB vs dense 4.00 MB (146x smaller)
+
+iteration =   1, residual = 1.405535e+00
+iteration =   2, residual = 1.009157e-01
+iteration =   3, residual = 8.257757e-03
+iteration =   4, residual = 7.365647e-04
+iteration =   5, residual = 6.424428e-05
+iteration =   6, residual = 5.684930e-06
+
+CG converged after 6 iterations, final residual = 5.684930e-06
+Timings:
+  CG solve (incl. initial residual) :    10.458 ms  (1.743 ms/iteration)
+  one cusparseSpMV                  :     0.037 ms  (~1.0 GB/s effective)
+Test Summary:  Error amount = 0.000001
+
+----- cusparse_example 65536 -----
+conjugateGradient: GPU Device 0: "NVIDIA GeForce GTX 1650 Ti"
+> GPU device has 16 Multi-Processors, SM 7.5 compute capabilities
+
+Matrix: 65536 x 65536, nnz = 196606, diag in [10, 11), tol = 1e-05, max_iter = 10000
+Storage: CSR 1.75 MB vs dense 16384.00 MB (9362x smaller)
+
+iteration =   1, residual = 1.107266e+01
+iteration =   2, residual = 8.126441e-01
+iteration =   3, residual = 6.709606e-02
+iteration =   4, residual = 5.734474e-03
+iteration =   5, residual = 4.944829e-04
+iteration =   6, residual = 4.595266e-05
+iteration =   7, residual = 4.237672e-06
+
+CG converged after 7 iterations, final residual = 4.237672e-06
+Timings:
+  CG solve (incl. initial residual) :    11.733 ms  (1.676 ms/iteration)
+  one cusparseSpMV                  :     0.035 ms  (~67.2 GB/s effective)
+Test Summary:  Error amount = 0.000001
+
+----- cusparse_example 16777216 -----
+conjugateGradient: GPU Device 0: "NVIDIA GeForce GTX 1650 Ti"
+> GPU device has 16 Multi-Processors, SM 7.5 compute capabilities
+
+Matrix: 16777216 x 16777216, nnz = 50331646, diag in [10, 11), tol = 1e-05, max_iter = 10000
+Storage: CSR 448.00 MB vs dense 1073741824.00 MB (2396745x smaller)
+
+iteration =   1, residual = 1.780946e+02
+iteration =   2, residual = 1.299703e+01
+iteration =   3, residual = 1.077768e+00
+iteration =   4, residual = 9.248697e-02
+iteration =   5, residual = 7.984712e-03
+iteration =   6, residual = 7.402558e-04
+iteration =   7, residual = 6.805852e-05
+iteration =   8, residual = 6.442693e-06
+
+CG converged after 8 iterations, final residual = 6.442693e-06
+Timings:
+  CG solve (incl. initial residual) :   115.516 ms  (14.439 ms/iteration)
+  one cusparseSpMV                  :     6.128 ms  (~98.6 GB/s effective)
+Test Summary:  Error amount = 0.000000
+
+===== Conditioning: smaller diagonal -> more iterations (N = 1048576) =====
+----- cusparse_example 1048576 4 -----
+conjugateGradient: GPU Device 0: "NVIDIA GeForce GTX 1650 Ti"
+> GPU device has 16 Multi-Processors, SM 7.5 compute capabilities
+
+Matrix: 1048576 x 1048576, nnz = 3145726, diag in [4, 5), tol = 1e-05, max_iter = 10000
+Storage: CSR 28.00 MB vs dense 4194304.00 MB (149797x smaller)
+
+iteration =   1, residual = 9.306786e+01
+iteration =   2, residual = 1.533716e+01
+iteration =   3, residual = 2.984649e+00
+iteration =   4, residual = 6.116256e-01
+iteration =   5, residual = 1.252680e-01
+iteration =   6, residual = 2.780287e-02
+iteration =   7, residual = 6.169330e-03
+iteration =   8, residual = 1.406257e-03
+iteration =   9, residual = 3.301851e-04
+iteration =  10, residual = 7.750870e-05
+iteration =  12, residual = 4.507109e-06
+
+CG converged after 12 iterations, final residual = 4.507109e-06
+Timings:
+  CG solve (incl. initial residual) :    23.452 ms  (1.954 ms/iteration)
+  one cusparseSpMV                  :     0.386 ms  (~97.7 GB/s effective)
+Test Summary:  Error amount = 0.000000
+
+----- cusparse_example 1048576 2.5 -----
+conjugateGradient: GPU Device 0: "NVIDIA GeForce GTX 1650 Ti"
+> GPU device has 16 Multi-Processors, SM 7.5 compute capabilities
+
+Matrix: 1048576 x 1048576, nnz = 3145726, diag in [2.5, 3.5), tol = 1e-05, max_iter = 10000
+Storage: CSR 28.00 MB vs dense 4194304.00 MB (149797x smaller)
+
+iteration =   1, residual = 1.279620e+02
+iteration =   2, residual = 3.086746e+01
+iteration =   3, residual = 9.179662e+00
+iteration =   4, residual = 2.946825e+00
+iteration =   5, residual = 9.441624e-01
+iteration =   6, residual = 3.307057e-01
+iteration =   7, residual = 1.171869e-01
+iteration =   8, residual = 4.257805e-02
+iteration =   9, residual = 1.610065e-02
+iteration =  10, residual = 6.104619e-03
+iteration =  18, residual = 4.026066e-06
+
+CG converged after 18 iterations, final residual = 4.026066e-06
+Timings:
+  CG solve (incl. initial residual) :    26.524 ms  (1.474 ms/iteration)
+  one cusparseSpMV                  :     0.385 ms  (~98.1 GB/s effective)
+Test Summary:  Error amount = 0.000001
+
+----- cusparse_example 1048576 2.1 -----
+conjugateGradient: GPU Device 0: "NVIDIA GeForce GTX 1650 Ti"
+> GPU device has 16 Multi-Processors, SM 7.5 compute capabilities
+
+Matrix: 1048576 x 1048576, nnz = 3145726, diag in [2.1, 3.1), tol = 1e-05, max_iter = 10000
+Storage: CSR 28.00 MB vs dense 4194304.00 MB (149797x smaller)
+
+iteration =   1, residual = 1.421772e+02
+iteration =   2, residual = 3.916941e+01
+iteration =   3, residual = 1.361708e+01
+iteration =   4, residual = 5.192947e+00
+iteration =   5, residual = 1.980287e+00
+iteration =   6, residual = 8.297435e-01
+iteration =   7, residual = 3.548940e-01
+iteration =   8, residual = 1.556896e-01
+iteration =   9, residual = 7.156963e-02
+iteration =  10, residual = 3.311086e-02
+iteration =  22, residual = 6.854244e-06
+
+CG converged after 22 iterations, final residual = 6.854244e-06
+Timings:
+  CG solve (incl. initial residual) :    30.318 ms  (1.378 ms/iteration)
+  one cusparseSpMV                  :     0.384 ms  (~98.4 GB/s effective)
+Test Summary:  Error amount = 0.000001
+
+===== Looser tolerance =====
+----- cusparse_example 1048576 2.1 1e-2 -----
+conjugateGradient: GPU Device 0: "NVIDIA GeForce GTX 1650 Ti"
+> GPU device has 16 Multi-Processors, SM 7.5 compute capabilities
+
+Matrix: 1048576 x 1048576, nnz = 3145726, diag in [2.1, 3.1), tol = 0.01, max_iter = 10000
+Storage: CSR 28.00 MB vs dense 4194304.00 MB (149797x smaller)
+
+iteration =   1, residual = 1.421772e+02
+iteration =   2, residual = 3.916941e+01
+iteration =   3, residual = 1.361708e+01
+iteration =   4, residual = 5.192947e+00
+iteration =   5, residual = 1.980287e+00
+iteration =   6, residual = 8.297435e-01
+iteration =   7, residual = 3.548940e-01
+iteration =   8, residual = 1.556896e-01
+iteration =   9, residual = 7.156963e-02
+iteration =  10, residual = 3.311086e-02
+iteration =  12, residual = 7.681698e-03
+
+CG converged after 12 iterations, final residual = 7.681698e-03
+Timings:
+  CG solve (incl. initial residual) :    21.051 ms  (1.754 ms/iteration)
+  one cusparseSpMV                  :     0.384 ms  (~98.3 GB/s effective)
+Test Summary:  Error amount = 0.000810
+
+################ cuSOLVER + cuBLAS: QR solve of A*x = b ################
+===== Initial state (hard-coded 3x3) =====
+----- cusolver_example -----
+Solving A*x = b for a 3 x 3 system (original hard-coded A and b)
+
+A = (matlab base-1)
+A(1,1) = 1.000000
+A(1,2) = 2.000000
+A(1,3) = 3.000000
+A(2,1) = 4.000000
+A(2,2) = 5.000000
+A(2,3) = 6.000000
+A(3,1) = 2.000000
+A(3,2) = 1.000000
+A(3,3) = 1.000000
+=====
+B = (matlab base-1)
+B(1,1) = 6.000000
+B(2,1) = 15.000000
+B(3,1) = 4.000000
+=====
+workspace: geqrf 786432, ormqr 67104 doubles -> allocating 786432
+after geqrf: info_gpu = 0
+after ormqr: info_gpu = 0
+X = (matlab base-1)
+X(1,1) = 1.000000
+X(2,1) = 1.000000
+X(3,1) = 1.000000
+
+Timings (FP64):
+  geqrf (A = QR)     :     5.669 ms  (0.00 GFLOP/s)
+  ormqr (Q^T * b)    :     1.697 ms
+  trsm  (R \ Q^T b)  :     2.257 ms
+max |x - 1| = 4.996e-15, max |A*x - b| = 2.665e-15 -> PASS
+
+===== Random systems, growing m =====
+----- cusolver_example 4 -----
+Solving A*x = b for a 4 x 4 system (random A, b = A*ones)
+
+A = (matlab base-1)
+A(1,1) = -0.594226
+A(1,2) = -0.246986
+A(1,3) = -0.600269
+A(1,4) = -0.000763
+A(2,1) = -0.722770
+A(2,2) = 0.809259
+A(2,3) = -0.634083
+A(2,4) = -0.929868
+A(3,1) = -0.850520
+A(3,2) = 0.007721
+A(3,3) = -0.914365
+A(3,4) = -0.234230
+A(4,1) = -0.186010
+A(4,2) = -0.650807
+A(4,3) = 0.156468
+A(4,4) = -0.164464
+=====
+B = (matlab base-1)
+B(1,1) = -1.442244
+B(2,1) = -1.477462
+B(3,1) = -1.991394
+B(4,1) = -0.844813
+=====
+workspace: geqrf 786432, ormqr 67360 doubles -> allocating 786432
+after geqrf: info_gpu = 0
+after ormqr: info_gpu = 0
+X = (matlab base-1)
+X(1,1) = 1.000000
+X(2,1) = 1.000000
+X(3,1) = 1.000000
+X(4,1) = 1.000000
+
+Timings (FP64):
+  geqrf (A = QR)     :     5.106 ms  (0.00 GFLOP/s)
+  ormqr (Q^T * b)    :     1.545 ms
+  trsm  (R \ Q^T b)  :     2.143 ms
+max |x - 1| = 4.108e-15, max |A*x - b| = 0.000e+00 -> PASS
+
+----- cusolver_example 64 -----
+Solving A*x = b for a 64 x 64 system (random A, b = A*ones)
+
+workspace: geqrf 786432, ormqr 90912 doubles -> allocating 786432
+after geqrf: info_gpu = 0
+after ormqr: info_gpu = 0
+
+Timings (FP64):
+  geqrf (A = QR)     :    33.781 ms  (0.01 GFLOP/s)
+  ormqr (Q^T * b)    :     3.768 ms
+  trsm  (R \ Q^T b)  :     2.598 ms
+max |x - 1| = 1.266e-14, max |A*x - b| = 8.549e-15 -> PASS
+
+----- cusolver_example 256 -----
+Solving A*x = b for a 256 x 256 system (random A, b = A*ones)
+
+workspace: geqrf 786432, ormqr 262944 doubles -> allocating 786432
+after geqrf: info_gpu = 0
+after ormqr: info_gpu = 0
+
+Timings (FP64):
+  geqrf (A = QR)     :    11.905 ms  (1.88 GFLOP/s)
+  ormqr (Q^T * b)    :    36.984 ms
+  trsm  (R \ Q^T b)  :     2.645 ms
+max |x - 1| = 1.319e-13, max |A*x - b| = 3.730e-14 -> PASS
+
+----- cusolver_example 1024 -----
+Solving A*x = b for a 1024 x 1024 system (random A, b = A*ones)
+
+workspace: geqrf 1572864, ormqr 2425632 doubles -> allocating 2425632
+after geqrf: info_gpu = 0
+after ormqr: info_gpu = 0
+
+Timings (FP64):
+  geqrf (A = QR)     :    63.609 ms  (22.51 GFLOP/s)
+  ormqr (Q^T * b)    :    11.389 ms
+  trsm  (R \ Q^T b)  :     2.616 ms
+max |x - 1| = 2.514e-13, max |A*x - b| = 1.421e-13 -> PASS
+
+----- cusolver_example 2048 -----
+Solving A*x = b for a 2048 x 2048 system (random A, b = A*ones)
+
+workspace: geqrf 2621440, ormqr 8979232 doubles -> allocating 8979232
+after geqrf: info_gpu = 0
+after ormqr: info_gpu = 0
+
+Timings (FP64):
+  geqrf (A = QR)     :   233.022 ms  (49.15 GFLOP/s)
+  ormqr (Q^T * b)    :    18.929 ms
+  trsm  (R \ Q^T b)  :     3.010 ms
+max |x - 1| = 4.077e-13, max |A*x - b| = 5.400e-13 -> PASS
+
+----- cusolver_example 4096 -----
+Solving A*x = b for a 4096 x 4096 system (random A, b = A*ones)
+
+workspace: geqrf 4718592, ormqr 34669344 doubles -> allocating 34669344
+after geqrf: info_gpu = 0
+after ormqr: info_gpu = 0
+
+Timings (FP64):
+  geqrf (A = QR)     :  1078.732 ms  (84.94 GFLOP/s)
+  ormqr (Q^T * b)    :    35.405 ms
+  trsm  (R \ Q^T b)  :     2.774 ms
+max |x - 1| = 5.380e-12, max |A*x - b| = 3.183e-12 -> PASS
+
+################ cuRAND: device and host API ################
+===== Initial state (25 blocks x 20 threads, [0,100), time seed) =====
+----- curand_example -----
+Config: 25 blocks x 20 threads = 500 numbers in [0, 100), seed=1792017003 (from time)
+
+random0 (seed fixed at 1)   : Random number = 96.
+random1 (seed=1792017003): Random number = 90.
+
+90 89 41 48 77 81 32 85 96 12 70 63 5 11 66 72 73 52 18 78 
+87 40 30 23 37 59 94 99 31 77 81 85 28 40 97 17 80 38 85 87 
+84 0 79 25 36 24 31 84 57 83 98 88 20 74 56 53 11 65 64 39 
+23 73 92 79 16 12 96 31 16 64 10 39 72 44 71 17 71 13 31 80 
+51 84 86 25 53 48 6 63 69 16 76 25 53 98 9 20 6 53 72 78 
+57 58 44 15 79 31 16 80 91 90 35 71 33 21 43 91 59 3 55 91 
+93 29 15 5 26 85 99 63 89 41 40 47 55 65 59 33 60 64 7 30 
+94 21 20 70 32 59 76 70 7 20 32 76 68 66 89 71 19 81 72 35 
+2 9 92 62 79 3 57 5 61 80 30 83 65 80 62 30 24 67 10 31 
+3 7 3 4 7 17 21 41 27 63 21 49 24 89 29 85 77 90 70 70 
+63 17 24 24 30 93 31 37 37 97 77 35 11 70 42 73 7 40 27 29 
+6 40 78 85 58 80 84 88 52 7 25 64 24 27 17 77 79 74 76 58 
+37 69 93 27 94 14 1 20 84 33 44 92 87 96 24 93 72 83 21 71 
+9 99 25 58 87 91 17 37 43 41 53 93 91 87 16 38 41 8 1 28 
+77 43 25 89 82 82 6 61 31 43 34 91 38 13 45 70 8 24 6 88 
+57 41 32 45 25 31 8 37 47 92 35 86 26 4 6 62 22 6 26 11 
+26 2 15 90 14 36 45 63 48 62 70 2 80 34 6 66 68 55 50 26 
+98 64 26 29 63 64 73 70 95 2 32 33 63 21 25 96 57 6 18 35 
+12 14 29 98 99 18 37 61 32 68 53 85 17 58 51 92 2 40 9 62 
+9 65 55 39 44 13 94 44 54 92 56 95 4 49 38 59 82 21 92 17 
+64 72 69 89 70 41 74 16 34 73 36 98 97 20 52 90 10 97 90 65 
+9 67 31 94 53 46 76 6 78 4 51 65 41 66 26 67 4 14 2 65 
+67 44 26 81 68 55 84 88 38 48 63 31 96 8 35 43 67 0 10 75 
+10 69 3 24 67 36 50 34 23 53 60 48 14 93 32 0 74 63 32 54 
+99 52 36 1 42 86 92 51 49 19 86 68 93 81 32 97 71 54 54 16 
+Device API (curand_init + curand per thread, XORWOW state 48 bytes):
+  init kernel     :    0.116 ms
+  generate kernel :    0.260 ms
+  count=500  min=0  max=99  mean=49.902 (ideal 49.500)
+  chi-square=86.8 over 100 bins (ideal 99 +/- 14.1): looks uniform
+Host API (curandGenerate, XORWOW):
+  first call (incl. state setup) :    8.430 ms
+  second call                    :    0.042 ms
+  count=500  min=0  max=99  mean=47.426 (ideal 49.500)
+  chi-square=104.0 over 100 bins (ideal 99 +/- 14.1): looks uniform
+
+===== Fixed seed, run twice: identical output =====
+----- curand_example 4 8 100 1234 -----
+Config: 4 blocks x 8 threads = 32 numbers in [0, 100), seed=1234 (fixed)
+
+random0 (seed fixed at 1)   : Random number = 96.
+random1 (seed=1234): Random number = 73.
+
+73 2 44 39 33 39 35 9 
+93 8 15 19 2 17 58 7 
+70 28 99 52 58 73 83 73 
+38 4 85 20 28 59 24 17 
+Device API (curand_init + curand per thread, XORWOW state 48 bytes):
+  init kernel     :    0.121 ms
+  generate kernel :    0.082 ms
+  count=32  min=2  max=99  mean=40.750 (ideal 49.500)
+  chi-square=118.0 over 100 bins (ideal 99 +/- 14.1): looks uniform
+Host API (curandGenerate, XORWOW):
+  first call (incl. state setup) :    8.466 ms
+  second call                    :    0.032 ms
+  count=32  min=0  max=95  mean=41.438 (ideal 49.500)
+  chi-square=80.5 over 100 bins (ideal 99 +/- 14.1): looks uniform
+
+----- curand_example 4 8 100 1234 -----
+Config: 4 blocks x 8 threads = 32 numbers in [0, 100), seed=1234 (fixed)
+
+random0 (seed fixed at 1)   : Random number = 96.
+random1 (seed=1234): Random number = 73.
+
+73 2 44 39 33 39 35 9 
+93 8 15 19 2 17 58 7 
+70 28 99 52 58 73 83 73 
+38 4 85 20 28 59 24 17 
+Device API (curand_init + curand per thread, XORWOW state 48 bytes):
+  init kernel     :    0.091 ms
+  generate kernel :    0.252 ms
+  count=32  min=2  max=99  mean=40.750 (ideal 49.500)
+  chi-square=118.0 over 100 bins (ideal 99 +/- 14.1): looks uniform
+Host API (curandGenerate, XORWOW):
+  first call (incl. state setup) :    8.750 ms
+  second call                    :    0.111 ms
+  count=32  min=0  max=95  mean=41.438 (ideal 49.500)
+  chi-square=80.5 over 100 bins (ideal 99 +/- 14.1): looks uniform
+
+===== Different range: dice rolls in [0,6) =====
+----- curand_example 4 8 6 1234 -----
+Config: 4 blocks x 8 threads = 32 numbers in [0, 6), seed=1234 (fixed)
+
+random0 (seed fixed at 1)   : Random number = 96.
+random1 (seed=1234): Random number = 73.
+
+3 0 0 5 3 3 5 5 
+5 2 3 3 0 1 2 3 
+0 0 3 4 4 1 1 1 
+0 2 3 4 0 3 2 3 
+Device API (curand_init + curand per thread, XORWOW state 48 bytes):
+  init kernel     :    0.092 ms
+  generate kernel :    0.236 ms
+  count=32  min=0  max=5  mean=2.312 (ideal 2.500)
+  chi-square=6.6 over 6 bins (ideal 5 +/- 3.2): looks uniform
+Host API (curandGenerate, XORWOW):
+  first call (incl. state setup) :    8.802 ms
+  second call                    :    0.102 ms
+  count=32  min=0  max=5  mean=2.938 (ideal 2.500)
+  chi-square=12.6 over 6 bins (ideal 5 +/- 3.2): looks uniform
+
+===== Larger data sets =====
+----- curand_example 4096 256 100 1234 -----
+Config: 4096 blocks x 256 threads = 1048576 numbers in [0, 100), seed=1234 (fixed)
+
+random0 (seed fixed at 1)   : Random number = 96.
+random1 (seed=1234): Random number = 73.
+
+Device API (curand_init + curand per thread, XORWOW state 48 bytes):
+  init kernel     :   37.335 ms
+  generate kernel :    0.807 ms
+  count=1048576  min=0  max=99  mean=49.478 (ideal 49.500)
+  chi-square=93.4 over 100 bins (ideal 99 +/- 14.1): looks uniform
+Host API (curandGenerate, XORWOW):
+  first call (incl. state setup) :    8.797 ms
+  second call                    :    0.045 ms
+  count=1048576  min=0  max=99  mean=49.551 (ideal 49.500)
+  chi-square=89.0 over 100 bins (ideal 99 +/- 14.1): looks uniform
+
+----- curand_example 16384 256 1000 1234 -----
+Config: 16384 blocks x 256 threads = 4194304 numbers in [0, 1000), seed=1234 (fixed)
+
+random0 (seed fixed at 1)   : Random number = 96.
+random1 (seed=1234): Random number = 73.
+
+Device API (curand_init + curand per thread, XORWOW state 48 bytes):
+  init kernel     :  211.352 ms
+  generate kernel :    3.098 ms
+  count=4194304  min=0  max=999  mean=499.635 (ideal 499.500)
+  chi-square=952.2 over 1000 bins (ideal 999 +/- 44.7): looks uniform
+Host API (curandGenerate, XORWOW):
+  first call (incl. state setup) :    7.184 ms
+  second call                    :    0.145 ms
+  count=4194304  min=0  max=999  mean=499.318 (ideal 499.500)
+  chi-square=949.2 over 1000 bins (ideal 999 +/- 44.7): looks uniform
+
+----- curand_example 65536 256 1000 1234 -----
+Config: 65536 blocks x 256 threads = 16777216 numbers in [0, 1000), seed=1234 (fixed)
+
+random0 (seed fixed at 1)   : Random number = 96.
+random1 (seed=1234): Random number = 73.
+
+Device API (curand_init + curand per thread, XORWOW state 48 bytes):
+  init kernel     :  841.933 ms
+  generate kernel :   12.190 ms
+  count=16777216  min=0  max=999  mean=499.583 (ideal 499.500)
+  chi-square=941.4 over 1000 bins (ideal 999 +/- 44.7): looks uniform
+Host API (curandGenerate, XORWOW):
+  first call (incl. state setup) :    7.196 ms
+  second call                    :    0.668 ms
+  count=16777216  min=0  max=999  mean=499.469 (ideal 499.500)
+  chi-square=1039.6 over 1000 bins (ideal 999 +/- 44.7): looks uniform
+

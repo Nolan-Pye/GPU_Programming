@@ -13,29 +13,54 @@
  * This sample implements a conjugate gradient solver on GPU
  * using CUBLAS and CUSPARSE
  *
+ * Usage: cusparse_example [N] [diag] [tol] [max_iter]
+ *
+ * With no arguments it runs the original configuration: N = 1048576,
+ * diagonal entries in [10, 11), tol = 1e-5, max_iter = 10000.
+ *
+ *   N        - matrix is N x N (symmetric tridiagonal, stored as CSR), N >= 2
+ *   diag     - diagonal entries are rand in [diag, diag+1); off-diagonals are
+ *              rand in [0, 1). Smaller diag -> worse conditioned -> more
+ *              CG iterations (keep diag > 2 so the matrix stays positive
+ *              definite)
+ *   tol      - stop when ||r|| < tol
+ *   max_iter - iteration limit
+ *
+ * Ported to the CUDA 11+ generic cuSPARSE API: the legacy cusparseScsrmv()
+ * used originally was removed in CUDA 11, so A*p is now cusparseSpMV() on a
+ * CSR matrix descriptor and dense-vector descriptors.
  */
 
 // includes, system
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 /* Using updated (v2) interfaces to cublas */
 #include <cuda_runtime.h>
 #include <cusparse.h>
 #include <cublas_v2.h>
 
-// Utilities and system includes
-#include "helper_functions.h"  // helper for shared functions common to CUDA Samples
-#include "helper_cuda.h"       // helper function CUDA error checking and initialization
-
 const char *sSDKname     = "conjugateGradient";
 
+#define CUDA_CHECK(call) do { cudaError_t e_ = (call); if (e_ != cudaSuccess) { \
+        printf("CUDA error %s at %s:%d\n", cudaGetErrorString(e_), __FILE__, __LINE__); \
+        exit(EXIT_FAILURE); } } while (0)
+
+#define CUBLAS_CHECK(call) do { cublasStatus_t s_ = (call); if (s_ != CUBLAS_STATUS_SUCCESS) { \
+        printf("cuBLAS error %d at %s:%d\n", (int)s_, __FILE__, __LINE__); \
+        exit(EXIT_FAILURE); } } while (0)
+
+#define CUSPARSE_CHECK(call) do { cusparseStatus_t s_ = (call); if (s_ != CUSPARSE_STATUS_SUCCESS) { \
+        printf("cuSPARSE error %s at %s:%d\n", cusparseGetErrorString(s_), __FILE__, __LINE__); \
+        exit(EXIT_FAILURE); } } while (0)
+
 /* genTridiag: generate a random tridiagonal symmetric matrix */
-void genTridiag(int *I, int *J, float *val, int N, int nz)
+void genTridiag(int *I, int *J, float *val, int N, int nz, float diag)
 {
     I[0] = 0, J[0] = 0, J[1] = 1;
-    val[0] = (float)rand()/RAND_MAX + 10.0f;
+    val[0] = (float)rand()/RAND_MAX + diag;
     val[1] = (float)rand()/RAND_MAX;
     int start;
 
@@ -60,7 +85,7 @@ void genTridiag(int *I, int *J, float *val, int N, int nz)
         }
 
         val[start] = val[start-1];
-        val[start+1] = (float)rand()/RAND_MAX + 10.0f;
+        val[start+1] = (float)rand()/RAND_MAX + diag;
 
         if (i < N-1)
         {
@@ -75,8 +100,9 @@ int main(int argc, char **argv)
 {
     int M = 0, N = 0, nz = 0, *I = NULL, *J = NULL;
     float *val = NULL;
-    const float tol = 1e-5f;
-    const int max_iter = 10000;
+    float tol = 1e-5f;
+    int max_iter = 10000;
+    float diag = 10.0f;
     float *x;
     float *rhs;
     float a, b, na, r0, r1;
@@ -86,44 +112,41 @@ int main(int argc, char **argv)
     int k;
     float alpha, beta, alpham1;
 
-    // This will pick the best possible CUDA capable device
-    cudaDeviceProp deviceProp;
-    int devID = findCudaDevice(argc, (const char **)argv);
-
-    if (devID < 0)
+    N = (argc > 1) ? atoi(argv[1]) : 1048576;
+    if (argc > 2) diag = (float)atof(argv[2]);
+    if (argc > 3) tol = (float)atof(argv[3]);
+    if (argc > 4) max_iter = atoi(argv[4]);
+    if (N < 2)
     {
-        printf("exiting...\n");
-        exit(EXIT_SUCCESS);
+        printf("Usage: %s [N>=2] [diag] [tol] [max_iter]\n", argv[0]);
+        exit(EXIT_FAILURE);
     }
 
-    checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
+    // Use the current (default) CUDA device
+    cudaDeviceProp deviceProp;
+    int devID = 0;
+    CUDA_CHECK(cudaGetDevice(&devID));
+    CUDA_CHECK(cudaGetDeviceProperties(&deviceProp, devID));
 
     // Statistics about the GPU device
+    printf("%s: GPU Device %d: \"%s\"\n", sSDKname, devID, deviceProp.name);
     printf("> GPU device has %d Multi-Processors, SM %d.%d compute capabilities\n\n",
            deviceProp.multiProcessorCount, deviceProp.major, deviceProp.minor);
 
-    int version = (deviceProp.major * 0x10 + deviceProp.minor);
-
-    if (version < 0x11)
-    {
-        printf("%s: requires a minimum CUDA compute 1.1 capability\n", sSDKname);
-
-        // cudaDeviceReset causes the driver to clean up all state. While
-        // not mandatory in normal operation, it is good practice.  It is also
-        // needed to ensure correct operation when the application is being
-        // profiled. Calling cudaDeviceReset causes all profile data to be
-        // flushed before the application exits
-        cudaDeviceReset();
-        exit(EXIT_SUCCESS);
-    }
-
     /* Generate a random tridiagonal symmetric matrix in CSR format */
-    M = N = 1048576;
+    M = N;
     nz = (N-2)*3 + 4;
     I = (int *)malloc(sizeof(int)*(N+1));
     J = (int *)malloc(sizeof(int)*nz);
     val = (float *)malloc(sizeof(float)*nz);
-    genTridiag(I, J, val, N, nz);
+    genTridiag(I, J, val, N, nz, diag);
+
+    double csrMB = ((N + 1) * sizeof(int) + nz * (sizeof(int) + sizeof(float))) / 1048576.0;
+    double denseMB = (double)M * N * sizeof(float) / 1048576.0;
+    printf("Matrix: %d x %d, nnz = %d, diag in [%g, %g), tol = %g, max_iter = %d\n",
+           M, N, nz, diag, diag + 1.0f, tol, max_iter);
+    printf("Storage: CSR %.2f MB vs dense %.2f MB (%.0fx smaller)\n\n",
+           csrMB, denseMB, denseMB / csrMB);
 
     x = (float *)malloc(sizeof(float)*N);
     rhs = (float *)malloc(sizeof(float)*N);
@@ -136,49 +159,63 @@ int main(int argc, char **argv)
 
     /* Get handle to the CUBLAS context */
     cublasHandle_t cublasHandle = 0;
-    cublasStatus_t cublasStatus;
-    cublasStatus = cublasCreate(&cublasHandle);
-
-    checkCudaErrors(cublasStatus);
+    CUBLAS_CHECK(cublasCreate(&cublasHandle));
 
     /* Get handle to the CUSPARSE context */
     cusparseHandle_t cusparseHandle = 0;
-    cusparseStatus_t cusparseStatus;
-    cusparseStatus = cusparseCreate(&cusparseHandle);
+    CUSPARSE_CHECK(cusparseCreate(&cusparseHandle));
 
-    checkCudaErrors(cusparseStatus);
+    CUDA_CHECK(cudaMalloc((void **)&d_col, nz*sizeof(int)));
+    CUDA_CHECK(cudaMalloc((void **)&d_row, (N+1)*sizeof(int)));
+    CUDA_CHECK(cudaMalloc((void **)&d_val, nz*sizeof(float)));
+    CUDA_CHECK(cudaMalloc((void **)&d_x, N*sizeof(float)));
+    CUDA_CHECK(cudaMalloc((void **)&d_r, N*sizeof(float)));
+    CUDA_CHECK(cudaMalloc((void **)&d_p, N*sizeof(float)));
+    CUDA_CHECK(cudaMalloc((void **)&d_Ax, N*sizeof(float)));
 
-    cusparseMatDescr_t descr = 0;
-    cusparseStatus = cusparseCreateMatDescr(&descr);
+    CUDA_CHECK(cudaMemcpy(d_col, J, nz*sizeof(int), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_row, I, (N+1)*sizeof(int), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_val, val, nz*sizeof(float), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_x, x, N*sizeof(float), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_r, rhs, N*sizeof(float), cudaMemcpyHostToDevice));
 
-    checkCudaErrors(cusparseStatus);
-
-    cusparseSetMatType(descr,CUSPARSE_MATRIX_TYPE_GENERAL);
-    cusparseSetMatIndexBase(descr,CUSPARSE_INDEX_BASE_ZERO);
-
-    checkCudaErrors(cudaMalloc((void **)&d_col, nz*sizeof(int)));
-    checkCudaErrors(cudaMalloc((void **)&d_row, (N+1)*sizeof(int)));
-    checkCudaErrors(cudaMalloc((void **)&d_val, nz*sizeof(float)));
-    checkCudaErrors(cudaMalloc((void **)&d_x, N*sizeof(float)));
-    checkCudaErrors(cudaMalloc((void **)&d_r, N*sizeof(float)));
-    checkCudaErrors(cudaMalloc((void **)&d_p, N*sizeof(float)));
-    checkCudaErrors(cudaMalloc((void **)&d_Ax, N*sizeof(float)));
-
-    cudaMemcpy(d_col, J, nz*sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_row, I, (N+1)*sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_val, val, nz*sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_x, x, N*sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_r, rhs, N*sizeof(float), cudaMemcpyHostToDevice);
+    /* Wrap the raw device arrays in generic-API descriptors: one CSR sparse
+       matrix (row offsets, column indices, values) and the dense vectors that
+       appear in A*x and A*p. The descriptors don't copy data, they just
+       describe it. */
+    cusparseSpMatDescr_t matA = NULL;
+    cusparseDnVecDescr_t vecx = NULL, vecp = NULL, vecAx = NULL;
+    CUSPARSE_CHECK(cusparseCreateCsr(&matA, N, N, nz, d_row, d_col, d_val,
+                                     CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                                     CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F));
+    CUSPARSE_CHECK(cusparseCreateDnVec(&vecx, N, d_x, CUDA_R_32F));
+    CUSPARSE_CHECK(cusparseCreateDnVec(&vecp, N, d_p, CUDA_R_32F));
+    CUSPARSE_CHECK(cusparseCreateDnVec(&vecAx, N, d_Ax, CUDA_R_32F));
 
     alpha = 1.0;
     alpham1 = -1.0;
     beta = 0.0;
     r0 = 0.;
 
-    cusparseScsrmv(cusparseHandle,CUSPARSE_OPERATION_NON_TRANSPOSE, N, N, nz, &alpha, descr, d_val, d_row, d_col, d_x, &beta, d_Ax);
+    /* SpMV may need scratch space; ask how much, allocate it once, reuse it */
+    size_t bufferSize = 0;
+    void *d_buffer = NULL;
+    CUSPARSE_CHECK(cusparseSpMV_bufferSize(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE,
+                                           &alpha, matA, vecx, &beta, vecAx, CUDA_R_32F,
+                                           CUSPARSE_SPMV_ALG_DEFAULT, &bufferSize));
+    CUDA_CHECK(cudaMalloc(&d_buffer, bufferSize > 0 ? bufferSize : 1));
 
-    cublasSaxpy(cublasHandle, N, &alpham1, d_Ax, 1, d_r, 1);
-    cublasStatus = cublasSdot(cublasHandle, N, d_r, 1, d_r, 1, &r1);
+    cudaEvent_t start, stop;
+    CUDA_CHECK(cudaEventCreate(&start));
+    CUDA_CHECK(cudaEventCreate(&stop));
+    CUDA_CHECK(cudaEventRecord(start));
+
+    /* r = b - A*x0 */
+    CUSPARSE_CHECK(cusparseSpMV(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, &alpha, matA, vecx,
+                                &beta, vecAx, CUDA_R_32F, CUSPARSE_SPMV_ALG_DEFAULT, d_buffer));
+
+    CUBLAS_CHECK(cublasSaxpy(cublasHandle, N, &alpham1, d_Ax, 1, d_r, 1));
+    CUBLAS_CHECK(cublasSdot(cublasHandle, N, d_r, 1, d_r, 1, &r1));
 
     k = 1;
 
@@ -187,30 +224,51 @@ int main(int argc, char **argv)
         if (k > 1)
         {
             b = r1 / r0;
-            cublasStatus = cublasSscal(cublasHandle, N, &b, d_p, 1);
-            cublasStatus = cublasSaxpy(cublasHandle, N, &alpha, d_r, 1, d_p, 1);
+            CUBLAS_CHECK(cublasSscal(cublasHandle, N, &b, d_p, 1));
+            CUBLAS_CHECK(cublasSaxpy(cublasHandle, N, &alpha, d_r, 1, d_p, 1));
         }
         else
         {
-            cublasStatus = cublasScopy(cublasHandle, N, d_r, 1, d_p, 1);
+            CUBLAS_CHECK(cublasScopy(cublasHandle, N, d_r, 1, d_p, 1));
         }
 
-        cusparseScsrmv(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, N, N, nz, &alpha, descr, d_val, d_row, d_col, d_p, &beta, d_Ax);
-        cublasStatus = cublasSdot(cublasHandle, N, d_p, 1, d_Ax, 1, &dot);
+        CUSPARSE_CHECK(cusparseSpMV(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, &alpha, matA, vecp,
+                                    &beta, vecAx, CUDA_R_32F, CUSPARSE_SPMV_ALG_DEFAULT, d_buffer));
+        CUBLAS_CHECK(cublasSdot(cublasHandle, N, d_p, 1, d_Ax, 1, &dot));
         a = r1 / dot;
 
-        cublasStatus = cublasSaxpy(cublasHandle, N, &a, d_p, 1, d_x, 1);
+        CUBLAS_CHECK(cublasSaxpy(cublasHandle, N, &a, d_p, 1, d_x, 1));
         na = -a;
-        cublasStatus = cublasSaxpy(cublasHandle, N, &na, d_Ax, 1, d_r, 1);
+        CUBLAS_CHECK(cublasSaxpy(cublasHandle, N, &na, d_Ax, 1, d_r, 1));
 
         r0 = r1;
-        cublasStatus = cublasSdot(cublasHandle, N, d_r, 1, d_r, 1, &r1);
-        cudaDeviceSynchronize();
-        printf("iteration = %3d, residual = %e\n", k, sqrt(r1));
+        CUBLAS_CHECK(cublasSdot(cublasHandle, N, d_r, 1, d_r, 1, &r1));
+        CUDA_CHECK(cudaDeviceSynchronize());
+        if (k <= 10 || k % 25 == 0 || r1 <= tol*tol)
+            printf("iteration = %3d, residual = %e\n", k, sqrt(r1));
         k++;
     }
 
-    cudaMemcpy(x, d_x, N*sizeof(float), cudaMemcpyDeviceToHost);
+    CUDA_CHECK(cudaEventRecord(stop));
+    CUDA_CHECK(cudaEventSynchronize(stop));
+    float solveMs;
+    CUDA_CHECK(cudaEventElapsedTime(&solveMs, start, stop));
+
+    /* Time SpMV on its own to see how close it gets to memory bandwidth */
+    const int reps = 20;
+    CUDA_CHECK(cudaEventRecord(start));
+    for (int r = 0; r < reps; r++)
+        CUSPARSE_CHECK(cusparseSpMV(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, &alpha, matA, vecp,
+                                    &beta, vecAx, CUDA_R_32F, CUSPARSE_SPMV_ALG_DEFAULT, d_buffer));
+    CUDA_CHECK(cudaEventRecord(stop));
+    CUDA_CHECK(cudaEventSynchronize(stop));
+    float spmvMs;
+    CUDA_CHECK(cudaEventElapsedTime(&spmvMs, start, stop));
+    spmvMs /= reps;
+    /* bytes touched: CSR arrays + read p + write Ax */
+    double spmvBytes = (N + 1) * 4.0 + nz * 8.0 + N * 8.0;
+
+    CUDA_CHECK(cudaMemcpy(x, d_x, N*sizeof(float), cudaMemcpyDeviceToHost));
 
     float rsum, diff, err = 0.0;
 
@@ -231,6 +289,21 @@ int main(int argc, char **argv)
         }
     }
 
+    int iters = k - 1;
+    printf("\nCG %s after %d iteration%s, final residual = %e\n",
+           (r1 <= tol*tol) ? "converged" : "did NOT converge", iters, iters == 1 ? "" : "s", sqrt(r1));
+    printf("Timings:\n");
+    printf("  CG solve (incl. initial residual) : %9.3f ms  (%.3f ms/iteration)\n",
+           solveMs, iters > 0 ? solveMs / iters : solveMs);
+    printf("  one cusparseSpMV                  : %9.3f ms  (~%.1f GB/s effective)\n",
+           spmvMs, spmvBytes / (spmvMs * 1e6));
+
+    CUSPARSE_CHECK(cusparseDestroySpMat(matA));
+    CUSPARSE_CHECK(cusparseDestroyDnVec(vecx));
+    CUSPARSE_CHECK(cusparseDestroyDnVec(vecp));
+    CUSPARSE_CHECK(cusparseDestroyDnVec(vecAx));
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
     cusparseDestroy(cusparseHandle);
     cublasDestroy(cublasHandle);
 
@@ -239,6 +312,7 @@ int main(int argc, char **argv)
     free(val);
     free(x);
     free(rhs);
+    cudaFree(d_buffer);
     cudaFree(d_col);
     cudaFree(d_row);
     cudaFree(d_val);
